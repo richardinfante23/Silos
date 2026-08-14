@@ -1,0 +1,508 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{AB235F44-01B2-4765-B07E-FD836B503F94}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>principal</RootNamespace>
+    <AssemblyName>Sisges Pro</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>logo.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.ReportViewer.Common, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportViewer.Common.10.0.40219.1\lib\Microsoft.ReportViewer.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.DataVisualization, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportViewer.Common.10.0.40219.1\lib\Microsoft.ReportViewer.DataVisualization.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.ProcessingObjectModel, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportViewer.Common.10.0.40219.1\lib\Microsoft.ReportViewer.ProcessingObjectModel.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.WinForms, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportViewer.WinForms.10.0.40219.1\lib\Microsoft.ReportViewer.WinForms.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.1.1.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Npgsql, Version=4.1.14.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
+      <HintPath>..\packages\Npgsql.4.1.14\lib\net461\Npgsql.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.6.0\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Text.Encodings.Web, Version=4.0.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.4.6.0\lib\netstandard2.0\System.Text.Encodings.Web.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Text.Json, Version=4.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Json.4.6.0\lib\net461\System.Text.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.3\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="analisis.cs" />
+    <Compile Include="ArticulosData.cs" />
+    <Compile Include="ArticulosForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ArticulosForm.Designer.cs">
+      <DependentUpon>ArticulosForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="asociacionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="asociacionForm.Designer.cs">
+      <DependentUpon>asociacionForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AuditoriaData.cs" />
+    <Compile Include="AuditoriaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AuditoriaForm.Designer.cs">
+      <DependentUpon>AuditoriaForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Base.cs" />
+    <Compile Include="CatalogGridHelper.cs" />
+    <Compile Include="GridHeaderFilter.cs" />
+    <Compile Include="UiTheme.cs" />
+    <Compile Include="conductoresGridForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="conductoresGridForm.Designer.cs">
+      <DependentUpon>conductoresGridForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="silosGridForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="silosGridForm.Designer.cs">
+      <DependentUpon>silosGridForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="transporteGridForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="transporteGridForm.Designer.cs">
+      <DependentUpon>transporteGridForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="asociacionGridForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="asociacionGridForm.Designer.cs">
+      <DependentUpon>asociacionGridForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="despacho.cs" />
+    <Compile Include="despachoData.cs" />
+    <Compile Include="DespachoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DespachoForm.Designer.cs">
+      <DependentUpon>DespachoForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="destinoData.cs" />
+    <Compile Include="detalle_articuloBO.cs" />
+    <Compile Include="EstanteForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EstanteForm.Designer.cs">
+      <DependentUpon>EstanteForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EstantesData.cs" />
+    <Compile Include="EstantesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EstantesForm.Designer.cs">
+      <DependentUpon>EstantesForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="historicoarticulosDatacs.cs" />
+    <Compile Include="historicoData.cs" />
+    <Compile Include="InventarioArticulos.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="InventarioArticulos.Designer.cs">
+      <DependentUpon>InventarioArticulos.cs</DependentUpon>
+    </Compile>
+    <Compile Include="inventarioForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="inventarioForm.Designer.cs">
+      <DependentUpon>inventarioForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="loginForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="loginForm.Designer.cs">
+      <DependentUpon>loginForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MovimientoArticulosForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MovimientoArticulosForm.designer.cs">
+      <DependentUpon>MovimientoArticulosForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MovimientoBO.cs" />
+    <Compile Include="personaJuridicaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="personaJuridicaForm.Designer.cs">
+      <DependentUpon>personaJuridicaForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="preciosForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="preciosForm.Designer.cs">
+      <DependentUpon>preciosForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="producto.cs" />
+    <Compile Include="productoData.cs" />
+    <Compile Include="productoNuevo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="productoNuevo.Designer.cs">
+      <DependentUpon>productoNuevo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProductorData.cs" />
+    <Compile Include="productoresJuridicos.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="productoresJuridicos.Designer.cs">
+      <DependentUpon>productoresJuridicos.cs</DependentUpon>
+    </Compile>
+    <Compile Include="productoresNaturales.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="productoresNaturales.Designer.cs">
+      <DependentUpon>productoresNaturales.cs</DependentUpon>
+    </Compile>
+    <Compile Include="productorNatural.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="productorNatural.Designer.cs">
+      <DependentUpon>productorNatural.cs</DependentUpon>
+    </Compile>
+    <Compile Include="productosFrom.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="productosFrom.Designer.cs">
+      <DependentUpon>productosFrom.cs</DependentUpon>
+    </Compile>
+    <Compile Include="recepcionData.cs" />
+    <Compile Include="reporteForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="reporteForm.Designer.cs">
+      <DependentUpon>reporteForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="romana.cs" />
+    <Compile Include="SeccionArticuloData.cs" />
+    <Compile Include="seccionData.cs" />
+    <Compile Include="SeccionesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SeccionesForm.Designer.cs">
+      <DependentUpon>SeccionesForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SeccionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SeccionForm.Designer.cs">
+      <DependentUpon>SeccionForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Seguridad.cs" />
+    <Compile Include="silosData.cs" />
+    <Compile Include="silosForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="silosForm.Designer.cs">
+      <DependentUpon>silosForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TercerosForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TercerosForm.Designer.cs">
+      <DependentUpon>TercerosForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Tercero_ArticulosDatacs.cs" />
+    <Compile Include="transporte.cs" />
+    <Compile Include="asiciasionesData.cs" />
+    <Compile Include="transporteForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="transporteForm.Designer.cs">
+      <DependentUpon>transporteForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="transportesData.cs" />
+    <Compile Include="conductoresForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="conductoresForm.Designer.cs">
+      <DependentUpon>conductoresForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="recepcionBO.cs" />
+    <Compile Include="UnidadArticulosData.cs" />
+    <Compile Include="UnidadArticulosFormcs.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UnidadArticulosFormcs.Designer.cs">
+      <DependentUpon>UnidadArticulosFormcs.cs</DependentUpon>
+    </Compile>
+    <Compile Include="usuarioData.cs" />
+    <Compile Include="nuevoUsuarioForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="nuevoUsuarioForm.Designer.cs">
+      <DependentUpon>nuevoUsuarioForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="usuariosForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="usuariosForm.Designer.cs">
+      <DependentUpon>usuariosForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="utilies.cs" />
+    <Compile Include="ValidacionFormulario.cs" />
+    <Compile Include="conductoresData.cs" />
+    <Compile Include="principal.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="principal.Designer.cs">
+      <DependentUpon>principal.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="recepcionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RecepcionUi.cs">
+      <DependentUpon>recepcionForm.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="recepcionForm.Designer.cs">
+      <DependentUpon>recepcionForm.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="analisis.rdlc" />
+    <EmbeddedResource Include="ArticulosForm.resx">
+      <DependentUpon>ArticulosForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="asociacionForm.resx">
+      <DependentUpon>asociacionForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AuditoriaForm.resx">
+      <DependentUpon>AuditoriaForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="boletaDespacho.rdlc" />
+    <EmbeddedResource Include="boletaRecepcion.rdlc" />
+    <EmbeddedResource Include="boletaSinAnalisis.rdlc" />
+    <EmbeddedResource Include="boletaSinAnalisisDespacho .rdlc" />
+    <EmbeddedResource Include="conductoresForm.resx">
+      <DependentUpon>conductoresForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="conductoresGridForm.resx">
+      <DependentUpon>conductoresGridForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DespachoForm.resx">
+      <DependentUpon>DespachoForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="detalle_articuloR.rdlc" />
+    <EmbeddedResource Include="detalle_articulot.rdlc" />
+    <EmbeddedResource Include="detalle_articulo.rdlc" />
+    <EmbeddedResource Include="EstanteForm.resx">
+      <DependentUpon>EstanteForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EstantesForm.resx">
+      <DependentUpon>EstantesForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="InventarioArticulos.resx">
+      <DependentUpon>InventarioArticulos.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="inventarioForm.resx">
+      <DependentUpon>inventarioForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="loginForm.resx">
+      <DependentUpon>loginForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="movimiento.rdlc" />
+    <EmbeddedResource Include="MovimientoArticulosForm.resx">
+      <DependentUpon>MovimientoArticulosForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="inventarioArticulo.rdlc" />
+    <EmbeddedResource Include="movSalidaR.rdlc" />
+    <EmbeddedResource Include="movimientoEntradaR.rdlc" />
+    <EmbeddedResource Include="movimientoSalida.rdlc" />
+    <EmbeddedResource Include="movimientoEntrada.rdlc" />
+    <EmbeddedResource Include="nuevoDespacho.rdlc" />
+    <EmbeddedResource Include="Nuevorecepcion.rdlc" />
+    <EmbeddedResource Include="nuevoUsuarioForm.resx">
+      <DependentUpon>nuevoUsuarioForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="personaJuridicaForm.resx">
+      <DependentUpon>personaJuridicaForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="preciosForm.resx">
+      <DependentUpon>preciosForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="principal.resx">
+      <DependentUpon>principal.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="productoNuevo.resx">
+      <DependentUpon>productoNuevo.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="productoresJuridicos.resx">
+      <DependentUpon>productoresJuridicos.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="productoresNaturales.resx">
+      <DependentUpon>productoresNaturales.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="productorNatural.resx">
+      <DependentUpon>productorNatural.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="productosFrom.resx">
+      <DependentUpon>productosFrom.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="recepcionForm.resx">
+      <DependentUpon>recepcionForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="reporteForm.resx">
+      <DependentUpon>reporteForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ResumenDespacho.rdlc" />
+    <EmbeddedResource Include="Inventario.rdlc" />
+    <EmbeddedResource Include="ResumenRecepcion.rdlc" />
+    <EmbeddedResource Include="SeccionesForm.resx">
+      <DependentUpon>SeccionesForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SeccionForm.resx">
+      <DependentUpon>SeccionForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="silosForm.resx">
+      <DependentUpon>silosForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TercerosForm.resx">
+      <DependentUpon>TercerosForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="transporteForm.resx">
+      <DependentUpon>transporteForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UnidadArticulosFormcs.resx">
+      <DependentUpon>UnidadArticulosFormcs.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="usuariosForm.resx">
+      <DependentUpon>usuariosForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\DataSources\despacho.datasource" />
+    <None Include="Properties\DataSources\detalle_articuloBO.datasource" />
+    <None Include="Properties\DataSources\MovimientoBO.datasource" />
+    <None Include="Properties\DataSources\nuevoUsuarioForm.datasource" />
+    <None Include="Properties\DataSources\recepcionBO.datasource" />
+    <None Include="Properties\DataSources\recepcionBO1.datasource" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="silologo.png" />
+    <None Include="silos-granos-andalucia-k7oH--620x349%40abc.png" />
+    <None Include="fondo sistema2.jpg" />
+    <None Include="hopper-bottom-corn-maize-storage-silo-price.jpg" />
+    <None Include="fondo.gif" />
+    <None Include="logo_agroalianza.png" />
+    <None Include="logo_agroalianza.jpg" />
+    <Content Include="logo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
