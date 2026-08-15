@@ -22,6 +22,8 @@ namespace principal
         public static readonly Color Accent = Color.FromArgb(14, 122, 128);
         public static readonly Color AccentHover = Color.FromArgb(10, 98, 104);
         public static readonly Color Surface = Color.FromArgb(241, 244, 247);
+        /// <summary>Fondo sutil para franjas de filtro (un tono bajo Surface).</summary>
+        public static readonly Color FilterStrip = Color.FromArgb(234, 238, 242);
         public static readonly Color Card = Color.White;
         public static readonly Color Border = Color.FromArgb(210, 218, 226);
         public static readonly Color TextPrimary = Color.FromArgb(28, 35, 43);
@@ -128,12 +130,23 @@ namespace principal
             button.Font = FontButton;
             button.Cursor = Cursors.Hand;
             button.Image = icon;
-            button.ImageAlign = ContentAlignment.MiddleLeft;
-            button.TextImageRelation = TextImageRelation.ImageBeforeText;
             button.TextAlign = ContentAlignment.MiddleCenter;
             button.UseVisualStyleBackColor = false;
             button.AutoSize = false;
-            button.Padding = new Padding(10, 0, 12, 0);
+            // Sin icono: Overlay + MiddleCenter evita texto descentrado (ImageBeforeText/MiddleLeft
+            // desplaza el layout aunque Image sea null). Padding L/R asimétrico solo con icono.
+            if (icon == null)
+            {
+                button.ImageAlign = ContentAlignment.MiddleCenter;
+                button.TextImageRelation = TextImageRelation.Overlay;
+                button.Padding = new Padding(8, 0, 8, 0);
+            }
+            else
+            {
+                button.ImageAlign = ContentAlignment.MiddleLeft;
+                button.TextImageRelation = TextImageRelation.ImageBeforeText;
+                button.Padding = new Padding(10, 0, 12, 0);
+            }
 
             if (wasTallIconButton && button.Height > 40)
             {
@@ -159,6 +172,10 @@ namespace principal
 
             foreach (Button button in FindButtons(root))
             {
+                // Filtros compactos (p.ej. Buscar del Listado): no reaplicar icono/min-width 118.
+                if (IsCompactActionButton(button))
+                    continue;
+
                 string key = ((button.Name ?? string.Empty) + " " + (button.Text ?? string.Empty)).ToLowerInvariant();
 
                 if (key.Contains("eliminar") || key.Contains("anular") || key.Contains("borrar"))
@@ -199,6 +216,37 @@ namespace principal
             }
 
             SpaceActionButtonClusters(root);
+        }
+
+        /// <summary>Tag para botones de filtro compactos que no deben recibir icono de acción.</summary>
+        public const string CompactActionTag = "ui:compact-action";
+
+        public static bool IsCompactActionButton(Button button)
+        {
+            return button != null
+                && string.Equals(button.Tag as string, CompactActionTag, StringComparison.Ordinal);
+        }
+
+        /// <summary>Botón primario compacto (sin icono) para franjas de filtro estrechas.</summary>
+        public static void StyleCompactPrimaryButton(Button button, string text, int width = 100, int height = 32)
+        {
+            if (button == null) return;
+            StyleActionButton(button, Accent, Color.White, AccentHover, 0, null);
+            button.Tag = CompactActionTag;
+            button.Image = null;
+            button.ImageAlign = ContentAlignment.MiddleCenter;
+            button.TextAlign = ContentAlignment.MiddleCenter;
+            button.TextImageRelation = TextImageRelation.Overlay;
+            // Padding top/bottom 0 y L/R simétrico: FlatStyle.Flat + padding vertical
+            // desigual empuja el texto hacia abajo y lo recorta en el borde inferior.
+            button.Padding = new Padding(8, 0, 8, 0);
+            button.Text = text ?? string.Empty;
+            button.ForeColor = Color.White;
+            button.AutoSize = false;
+            button.Size = new Size(width, height);
+            button.MinimumSize = new Size(width, height);
+            button.Dock = DockStyle.None;
+            button.UseVisualStyleBackColor = false;
         }
 
         private static void SpaceActionButtonClusters(Control root)
@@ -431,6 +479,45 @@ namespace principal
             textBox.BackColor = Card;
             textBox.ForeColor = TextPrimary;
             textBox.Font = FontRegular;
+        }
+
+        public static void StyleComboBox(ComboBox comboBox)
+        {
+            if (comboBox == null) return;
+            comboBox.FlatStyle = FlatStyle.Standard;
+            comboBox.BackColor = Card;
+            comboBox.ForeColor = TextPrimary;
+            comboBox.Font = FontRegular;
+        }
+
+        public static void StyleDateTimePicker(DateTimePicker picker)
+        {
+            if (picker == null) return;
+            picker.CalendarForeColor = TextPrimary;
+            picker.CalendarMonthBackground = Card;
+            picker.ForeColor = TextPrimary;
+            picker.Font = FontRegular;
+            try { picker.BackColor = Card; }
+            catch { /* algunos entornos no permiten BackColor en DTP */ }
+        }
+
+        /// <summary>
+        /// Marco de 1px (color Border) para que el campo se lea sobre Surface sin sombra.
+        /// </summary>
+        public static Panel WrapInputFrame(Control field)
+        {
+            if (field == null) throw new ArgumentNullException(nameof(field));
+            var frame = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(1),
+                BackColor = Border,
+                Margin = new Padding(0)
+            };
+            field.Dock = DockStyle.Fill;
+            field.Margin = new Padding(0);
+            frame.Controls.Add(field);
+            return frame;
         }
 
         public static Image CreateBrandMark(int size)

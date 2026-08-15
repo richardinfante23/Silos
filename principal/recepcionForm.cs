@@ -49,6 +49,7 @@ namespace principal
             cargarPaso();
             cargarProducto();
             cargarSilos();
+            SincronizarCombosFiltroListado();
            
             
              dtpHoraentrada.Format = DateTimePickerFormat.Custom;
@@ -147,13 +148,13 @@ namespace principal
             if (this.MdiParent != null)
                 this.WindowState = FormWindowState.Maximized;
 
-            tcRecepcion.Controls.Remove(tpAnalisis);
-            tcRecepcion.Controls.Remove(tpRomana);
+            // Pasos siempre visibles; se habilitan según el registro.
+            ActualizarPasosRecepcion();
             cbProducto.SelectedItem = null;
             if (nuevo)
             {
                 rbTipoNatural.Checked = true;
-                
+                AplicarModoRecepcion(false);
             }
             if (!nuevo)
             {
@@ -163,14 +164,11 @@ namespace principal
                 dtpFecha.Format = DateTimePickerFormat.Custom;
                 dtpFecha.CustomFormat = " ";
                 cbEstatus.SelectedItem = null;
-                    
-              
                 cbSilos.SelectedItem = null;
                 cbEstatus.Text = string.Empty;
-                
                 cbSilos.Text = string.Empty;
                 rbtFechaHasta.Visible = true;
-
+                AplicarModoRecepcion(true);
             }
 
             ActualizarEspacioGrilla();
@@ -791,6 +789,12 @@ namespace principal
             {
                 if (btnGuardar.Text == "Buscar")
                 {
+                    if (_modoListado)
+                    {
+                        EjecutarBusquedaListado();
+                        return;
+                    }
+
                     int producto = 0;
                     int status = 0;
                     int silos = 0;
@@ -910,46 +914,239 @@ namespace principal
                 
         }
 
+        private void EjecutarBusquedaListado()
+        {
+            try
+            {
+                if (_txtFiltroTicket == null)
+                    return;
+
+                int nroTicket = 0;
+                if (!string.IsNullOrWhiteSpace(_txtFiltroTicket.Text))
+                {
+                    if (!int.TryParse(_txtFiltroTicket.Text.Trim(), out nroTicket))
+                    {
+                        MessageBox.Show("El nro de ticket debe ser numérico.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        _txtFiltroTicket.Focus();
+                        return;
+                    }
+                }
+
+                DateTime fechaDesde = string.IsNullOrWhiteSpace(_dtpFiltroDesde.Text)
+                    ? DateTimePicker.MinimumDateTime
+                    : _dtpFiltroDesde.Value.Date;
+                DateTime fechaHasta = string.IsNullOrWhiteSpace(_dtpFiltroHasta.Text)
+                    ? DateTimePicker.MinimumDateTime
+                    : _dtpFiltroHasta.Value.Date;
+
+                if (fechaDesde != DateTimePicker.MinimumDateTime
+                    && fechaHasta != DateTimePicker.MinimumDateTime
+                    && fechaDesde > fechaHasta)
+                {
+                    MessageBox.Show("La fecha desde debe ser menor o igual a la fecha hasta.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                int idConductor = ResolverIdConductorFiltro(_txtFiltroConductor.Text);
+                if (!string.IsNullOrWhiteSpace(_txtFiltroConductor.Text) && idConductor == 0)
+                {
+                    MessageBox.Show("No se encontró conductor con esa cédula.", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    _txtFiltroConductor.Focus();
+                    return;
+                }
+
+                int idProductor = 0;
+                int idProductorJuridico = 0;
+                if (!string.IsNullOrWhiteSpace(_txtFiltroCliente.Text))
+                {
+                    if (!ResolverIdsProductorFiltro(_txtFiltroCliente.Text, out idProductor, out idProductorJuridico))
+                    {
+                        MessageBox.Show("No se encontró cliente/productor con ese documento.", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        _txtFiltroCliente.Focus();
+                        return;
+                    }
+                }
+
+                int idProducto = 0;
+                if (_cbFiltroProducto != null && !string.IsNullOrWhiteSpace(_cbFiltroProducto.Text) && _cbFiltroProducto.SelectedItem is DataRowView drvProd)
+                    idProducto = Convert.ToInt32(drvProd.Row["id"]);
+
+                int idEstatus = 0;
+                if (_cbFiltroEstatus != null && !string.IsNullOrWhiteSpace(_cbFiltroEstatus.Text) && _cbFiltroEstatus.SelectedItem is DataRowView drvEst)
+                    idEstatus = Convert.ToInt32(drvEst.Row["id"]);
+
+                resultadodt = rd.buscar(
+                    nroTicket,
+                    idProducto,
+                    idConductor,
+                    idProductor,
+                    idProductorJuridico,
+                    string.Empty,
+                    0,
+                    idEstatus,
+                    fechaDesde,
+                    fechaHasta);
+
+                if (resultadodt == null || resultadodt.Rows.Count == 0)
+                {
+                    MessageBox.Show("No se encontraron resultados", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    return;
+                }
+
+                btnExportar.Enabled = true;
+                btnGuardar.Text = "Buscar";
+                llenarGrid();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private int ResolverIdConductorFiltro(string cedulaTexto)
+        {
+            if (string.IsNullOrWhiteSpace(cedulaTexto))
+                return 0;
+
+            decimal cedula;
+            if (!decimal.TryParse(cedulaTexto.Trim(), out cedula))
+                return 0;
+
+            conductoresData cd = new conductoresData();
+            DataTable dt = cd.buscar(cedula);
+            try
+            {
+                if (dt.Rows.Count == 0)
+                    return 0;
+                return Convert.ToInt32(dt.Rows[0]["id"]);
+            }
+            finally
+            {
+                dt.Dispose();
+            }
+        }
+
+        private bool ResolverIdsProductorFiltro(string documentoTexto, out int idNatural, out int idJuridico)
+        {
+            idNatural = 0;
+            idJuridico = 0;
+            if (string.IsNullOrWhiteSpace(documentoTexto))
+                return true;
+
+            decimal documento;
+            if (!decimal.TryParse(documentoTexto.Trim(), out documento))
+                return false;
+
+            string letra = _cbFiltroLetraCliente != null && _cbFiltroLetraCliente.SelectedItem != null
+                ? _cbFiltroLetraCliente.SelectedItem.ToString().Trim()
+                : "V";
+
+            ProductorData pd = new ProductorData();
+
+            DataTable natural = pd.buscar(letra, documento);
+            try
+            {
+                if (natural.Rows.Count > 0)
+                {
+                    idNatural = Convert.ToInt32(natural.Rows[0]["id"]);
+                    return true;
+                }
+            }
+            finally
+            {
+                natural.Dispose();
+            }
+
+            DataTable juridico = pd.buscarPersonaJuridica(letra, documento);
+            try
+            {
+                if (juridico.Rows.Count > 0)
+                {
+                    idJuridico = Convert.ToInt32(juridico.Rows[0]["id"]);
+                    return true;
+                }
+            }
+            finally
+            {
+                juridico.Dispose();
+            }
+
+            // Si la letra no coincide, probar el resto de letras configuradas.
+            var letrasProbar = new List<string>();
+            if (!string.IsNullOrWhiteSpace(letrasNaturales))
+                letrasProbar.AddRange(letrasNaturales.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+            if (!string.IsNullOrWhiteSpace(letrasJuridicas))
+                letrasProbar.AddRange(letrasJuridicas.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+
+            foreach (string l in letrasProbar)
+            {
+                string t = l.Trim();
+                if (string.Equals(t, letra, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                DataTable n2 = pd.buscar(t, documento);
+                try
+                {
+                    if (n2.Rows.Count > 0)
+                    {
+                        idNatural = Convert.ToInt32(n2.Rows[0]["id"]);
+                        return true;
+                    }
+                }
+                finally
+                {
+                    n2.Dispose();
+                }
+
+                DataTable j2 = pd.buscarPersonaJuridica(t, documento);
+                try
+                {
+                    if (j2.Rows.Count > 0)
+                    {
+                        idJuridico = Convert.ToInt32(j2.Rows[0]["id"]);
+                        return true;
+                    }
+                }
+                finally
+                {
+                    j2.Dispose();
+                }
+            }
+
+            return false;
+        }
+
         private void llenarGrid()
         {
-            dgvRecepciones.DataSource = new DataTable();
-            dgvRecepciones.DataSource = resultadodt;
+            if (_filtroRecepciones == null)
+                _filtroRecepciones = new GridHeaderFilter(dgvRecepciones);
+
+            DataTable vista = resultadodt != null ? resultadodt.Copy() : new DataTable();
+            _filtroRecepciones.Bind(vista);
+            ConfigurarColumnasRecepcionVisibles();
             ActualizarEspacioGrilla();
+
             decimal totalNeto = decimal.Zero;
             decimal totalAcondiconado = decimal.Zero;
             foreach (DataGridViewRow registro in dgvRecepciones.Rows)
             {
-                totalAcondiconado += Convert.ToDecimal( registro.Cells["peso_acondicionado"].Value);
-                totalNeto += Convert.ToDecimal(registro.Cells["peso_neto"].Value);
+                if (registro.IsNewRow) continue;
+                if (registro.Cells["peso_acondicionado"].Value != null && registro.Cells["peso_acondicionado"].Value != DBNull.Value)
+                    totalAcondiconado += Convert.ToDecimal(registro.Cells["peso_acondicionado"].Value);
+                if (registro.Cells["peso_neto"].Value != null && registro.Cells["peso_neto"].Value != DBNull.Value)
+                    totalNeto += Convert.ToDecimal(registro.Cells["peso_neto"].Value);
             }
 
             lbTotal.Visible = true;
-            lbTotal.Text = " Peso N.= " + totalNeto+" Peso Acond.= "+totalAcondiconado;
-            //dgvRecepciones.Columns["Nro_Ticket"].Visible = false;
-            dgvRecepciones.Columns["cedulaproductor"].Visible = false;
-            dgvRecepciones.Columns["id_estatus"].Visible = false;
-            dgvRecepciones.Columns["id_producto"].Visible = false;
-            dgvRecepciones.Columns["nro_guia"].Visible = false;
-            dgvRecepciones.Columns["peso_guia"].Visible = false;
-            dgvRecepciones.Columns["nombreconductor"].Visible = false;
-            dgvRecepciones.Columns["rif"].Visible = false;
-            dgvRecepciones.Columns["id_silos"].Visible = false;
-            dgvRecepciones.Columns["hora_entrada"].Visible = false;
-            dgvRecepciones.Columns["hora_salida"].Visible = false;
-            dgvRecepciones.Columns["cedulaconductor"].Visible = false;
-            dgvRecepciones.Columns["nombre_asociacion"].Visible = false;
-            dgvRecepciones.Columns["nombre_transporte"].Visible = false;
-            dgvRecepciones.Columns["letranatural"].Visible = false;
-            dgvRecepciones.Columns["letrajuridica"].Visible = false;
-            dgvRecepciones.Columns["id_conductor"].Visible = false;
-            dgvRecepciones.Columns["id"].Visible = false;
-            dgvRecepciones.Columns["id_productor"].Visible = false;
-            dgvRecepciones.Columns["id_productor_juridico"].Visible = false;
-            dgvRecepciones.Columns["observaciones"].Visible = false;
-            dgvRecepciones.Columns["resumen"].Visible = false;
-            llenarObjeto(resultadodt.Rows[0]);
-            resultadodt.Dispose();
-            return;
+            lbTotal.Text = "  ·  Peso N.= " + totalNeto + "   Peso Acond.= " + totalAcondiconado;
+
+            AplicarModoRecepcion(true);
+
+            if (resultadodt != null && resultadodt.Rows.Count == 1)
+            {
+                llenarObjeto(resultadodt.Rows[0]);
+                AplicarModoRecepcion(false);
+            }
         }
 
 
@@ -1116,28 +1313,10 @@ namespace principal
          try{
 
                             btnGuardar.Text = "Guardar";
-                            if (tcRecepcion.Controls.Count == 1)
-                            {
-                               
-                                tcRecepcion.Controls.Add(tpAnalisis);
-
-
-                            } 
-             if (!tcRecepcion.Contains(tpRomana) && objRecepcion.id_estatus >= 2)
-                            {
-                                //if (supervisor || id_perfil == 2) {
-                                   tcRecepcion.Controls.Add(tpRomana);
-                                    
-                                //}
+                            AplicarModoRecepcion(false);
+                            ActualizarPasosRecepcion();
+                            if (objRecepcion.id_estatus >= 2)
                                 rbManual.Visible = supervisor;
-
-                            }
-
-                            if (tcRecepcion.Controls.Count == 3 && objRecepcion.id_estatus == 1)
-                            {
-
-                                tcRecepcion.Controls.Remove(tpRomana);
-                            }
 
                           
                             btnAnular.Visible = true;
@@ -1734,12 +1913,30 @@ namespace principal
 
         private void dgvRecepciones_CellContentDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
+            if (e.RowIndex < 0 || dgvRecepciones.SelectedRows.Count == 0) return;
 
-            var seleccionado=Convert.ToInt32( dgvRecepciones.SelectedRows[0].Cells[0].Value);
-            
-            DataRow[] rowseleccionado = resultadodt.Select("Nro_Ticket="+seleccionado);
-            llenarObjeto(rowseleccionado[0]);
-            
+            try
+            {
+                object ticketVal = dgvRecepciones.Columns.Contains("Nro_Ticket")
+                    ? dgvRecepciones.SelectedRows[0].Cells["Nro_Ticket"].Value
+                    : dgvRecepciones.SelectedRows[0].Cells[0].Value;
+                int seleccionado = Convert.ToInt32(ticketVal);
+
+                if (resultadodt == null || resultadodt.Rows.Count == 0)
+                    return;
+
+                DataRow[] rowseleccionado = resultadodt.Select("Nro_Ticket=" + seleccionado);
+                if (rowseleccionado.Length == 0) return;
+
+                llenarObjeto(rowseleccionado[0]);
+                AplicarModoRecepcion(false);
+                ActualizarPasosRecepcion();
+                tcRecepcion.SelectedTab = dtpHasta;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void cbSilos_SelectedValueChanged(object sender, EventArgs e)
