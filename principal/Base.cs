@@ -34,27 +34,20 @@ namespace principal
         }
         public static void  msjError(string msj)
         {
-            MessageBox.Show(msj, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
+            UiDialog.Show(Form.ActiveForm, msj, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         public static void msjExito(string msj)
         {
-            MessageBox.Show(msj, "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
+            UiDialog.Show(Form.ActiveForm, msj, "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         public static void msjAdvertencia(string msj)
         {
-            MessageBox.Show(msj, "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-
+            UiDialog.Show(Form.ActiveForm, msj, "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
         public static DialogResult msjPregunta(string msj)
         {
-            DialogResult result = MessageBox.Show(msj, "Interrogante", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            return result;
-          
-
+            return UiDialog.Show(Form.ActiveForm, msj, "Interrogante", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
         }
   
     }

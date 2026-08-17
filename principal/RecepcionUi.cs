@@ -10,16 +10,15 @@ namespace principal
         private bool _uiModernizada;
         private Panel _panelMetaRecepcion;
         private FlowLayoutPanel _panelAccionesRecepcion;
+        private TabPage _tpCaptura;
+        private TabPage _tpListado;
+        private TabControl _tcPasosCaptura;
         private TableLayoutPanel _hostDatosRecepcion;
-        private Panel _panelSuperiorRecepcion;
+        private TableLayoutPanel _hostListado;
         private Panel _panelGrillaRecepcion;
         private Panel _panelFormularioRecepcion;
         private Panel _panelFiltrosListado;
-        private FlowLayoutPanel _barraModoRecepcion;
-        private Button _btnModoListado;
-        private Button _btnModoCaptura;
         private Button _btnBuscarListado;
-        private Label _lblModoRecepcion;
         private GridHeaderFilter _filtroRecepciones;
         private bool _modoListado;
 
@@ -32,7 +31,13 @@ namespace principal
         private TextBox _txtFiltroCliente;
         private ComboBox _cbFiltroProducto;
         private ComboBox _cbFiltroEstatus;
-        private const float AlturaFiltrosListado = 144F;
+        private const float AlturaFiltrosListado = 156F;
+        private const int AlturaCardInicio = 182;
+        private const int AlturaCardGuia = 182;
+        private const int AlturaCardMeta = 140;
+        private const int AlturaFilaCampo = 36;
+        private const int AlturaFilaFiltro = 34;
+        private const int AlturaControlCampo = 30;
 
         private void AplicarUiRecepcionModerna()
         {
@@ -49,14 +54,9 @@ namespace principal
             this.DoubleBuffered = true;
 
             tcRecepcion.Dock = DockStyle.Fill;
-            tcRecepcion.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            dtpHasta.Text = "1. Datos";
-            tpAnalisis.Text = "2. Análisis";
-            tpRomana.Text = "3. Romana";
-            dtpHasta.BackColor = UiTheme.Surface;
-            tpAnalisis.BackColor = UiTheme.Surface;
-            tpRomana.BackColor = UiTheme.Surface;
-            label1.Text = "Nro ticket";
+            tcRecepcion.Font = new Font("Segoe UI", 10.5F, FontStyle.Bold);
+            tcRecepcion.Padding = new Point(12, 6);
+            label1.Text = "Nro ticket (auto)";
             label2.Text = "Fecha";
             label5.Text = "Producto";
             label3.Text = "Cédula conductor";
@@ -65,26 +65,87 @@ namespace principal
             label6.Text = "Datos iniciales";
             label7.Text = "Datos guía";
             label8.Text = "Nro guía";
-            label9.Text = "Peso guía";
+            label9.Text = "Peso guía (Kg)";
             label11.Text = "Estatus";
             label23.Text = "Silo";
             label24.Text = "Observaciones";
             label28.Text = "Análisis:";
 
-            // Pasos siempre presentes; se habilitan según el estatus.
-            if (!tcRecepcion.TabPages.Contains(dtpHasta))
-                tcRecepcion.TabPages.Add(dtpHasta);
-            if (!tcRecepcion.TabPages.Contains(tpAnalisis))
-                tcRecepcion.TabPages.Add(tpAnalisis);
-            if (!tcRecepcion.TabPages.Contains(tpRomana))
-                tcRecepcion.TabPages.Add(tpRomana);
+            ConstruirJerarquiaPestanas();
+
+            _panelFormularioRecepcion = CrearPanelFormulario();
+            _panelFiltrosListado = CrearPanelFiltrosListado();
+            _panelGrillaRecepcion = CrearPanelGrilla();
+            _panelAccionesRecepcion = CrearPanelAcciones();
 
             ConstruirLayoutDatosIniciales();
+            ConstruirLayoutListado();
             ConstruirLayoutAnalisis();
             ConstruirLayoutRomana();
             EstilizarControlesRecepcion();
+            ConfigurarTicketAutogenerado();
+            ConfigurarAnalisisSinUso();
             ActualizarPasosRecepcion();
             AplicarModoRecepcion(!nuevo);
+        }
+
+        private void ConstruirJerarquiaPestanas()
+        {
+            tcRecepcion.SuspendLayout();
+
+            if (tcRecepcion.TabPages.Contains(dtpHasta))
+                tcRecepcion.TabPages.Remove(dtpHasta);
+            if (tcRecepcion.TabPages.Contains(tpAnalisis))
+                tcRecepcion.TabPages.Remove(tpAnalisis);
+            if (tcRecepcion.TabPages.Contains(tpRomana))
+                tcRecepcion.TabPages.Remove(tpRomana);
+            tcRecepcion.Controls.Clear();
+
+            _tpCaptura = new TabPage
+            {
+                Text = "Captura",
+                BackColor = UiTheme.Surface,
+                Padding = new Padding(4)
+            };
+            _tpListado = new TabPage
+            {
+                Text = "Listado",
+                BackColor = UiTheme.Surface,
+                Padding = new Padding(4)
+            };
+
+            _tcPasosCaptura = new TabControl
+            {
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                Padding = new Point(8, 4)
+            };
+
+            dtpHasta.Text = "1. Datos";
+            tpAnalisis.Text = "2. Análisis";
+            tpRomana.Text = "3. Pesaje";
+            dtpHasta.BackColor = UiTheme.Surface;
+            tpAnalisis.BackColor = UiTheme.Surface;
+            tpRomana.BackColor = UiTheme.Surface;
+
+            _tcPasosCaptura.TabPages.Add(dtpHasta);
+            _tcPasosCaptura.TabPages.Add(tpAnalisis);
+            _tcPasosCaptura.TabPages.Add(tpRomana);
+
+            _tpCaptura.Controls.Add(_tcPasosCaptura);
+            tcRecepcion.Controls.Add(_tpCaptura);
+            tcRecepcion.Controls.Add(_tpListado);
+
+            tcRecepcion.SelectedIndexChanged += (s, e) =>
+            {
+                if (_tpCaptura == null || _tpListado == null) return;
+                if (tcRecepcion.SelectedTab == _tpListado && !_modoListado)
+                    AplicarModoRecepcion(true);
+                else if (tcRecepcion.SelectedTab == _tpCaptura && _modoListado)
+                    AplicarModoRecepcion(false);
+            };
+
+            tcRecepcion.ResumeLayout(true);
         }
 
         private void ConstruirLayoutDatosIniciales()
@@ -96,84 +157,55 @@ namespace principal
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 4,
+                RowCount = 2,
                 Padding = new Padding(10, 10, 16, 10),
                 BackColor = UiTheme.Surface
             };
-            _hostDatosRecepcion.RowStyles.Add(new RowStyle(SizeType.Absolute, 46F)); // modo
-            _hostDatosRecepcion.RowStyles.Add(new RowStyle(SizeType.Percent, 55F));  // formulario
-            _hostDatosRecepcion.RowStyles.Add(new RowStyle(SizeType.Percent, 45F));  // grilla
-            // 64px: botón 38 + Padding top/bottom (8+10) + margen; evita clip del borde inferior.
-            _hostDatosRecepcion.RowStyles.Add(new RowStyle(SizeType.Absolute, 74F)); // acciones
+            _hostDatosRecepcion.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            _hostDatosRecepcion.RowStyles.Add(new RowStyle(SizeType.Absolute, 74F));
 
-            _barraModoRecepcion = CrearBarraModo();
-            _panelFormularioRecepcion = CrearPanelFormulario();
-            _panelFiltrosListado = CrearPanelFiltrosListado();
-            _panelGrillaRecepcion = CrearPanelGrilla();
-            _panelAccionesRecepcion = CrearPanelAcciones();
-
-            _panelSuperiorRecepcion = new Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = UiTheme.Surface
-            };
             _panelFormularioRecepcion.Dock = DockStyle.Fill;
-            _panelFiltrosListado.Dock = DockStyle.Fill;
-            _panelSuperiorRecepcion.Controls.Add(_panelFormularioRecepcion);
-            _panelSuperiorRecepcion.Controls.Add(_panelFiltrosListado);
-
-            _hostDatosRecepcion.Controls.Add(_barraModoRecepcion, 0, 0);
-            _hostDatosRecepcion.Controls.Add(_panelSuperiorRecepcion, 0, 1);
-            _hostDatosRecepcion.Controls.Add(_panelGrillaRecepcion, 0, 2);
-            _hostDatosRecepcion.Controls.Add(_panelAccionesRecepcion, 0, 3);
+            _hostDatosRecepcion.Controls.Add(_panelFormularioRecepcion, 0, 0);
+            _hostDatosRecepcion.Controls.Add(_panelAccionesRecepcion, 0, 1);
 
             dtpHasta.Controls.Add(_hostDatosRecepcion);
             dtpHasta.ResumeLayout(true);
         }
 
-        private FlowLayoutPanel CrearBarraModo()
+        private void ConstruirLayoutListado()
         {
-            var bar = new FlowLayoutPanel
+            _tpListado.SuspendLayout();
+            _tpListado.Controls.Clear();
+
+            _hostListado = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                FlowDirection = FlowDirection.LeftToRight,
-                WrapContents = false,
-                Padding = new Padding(2, 6, 2, 2),
+                ColumnCount = 1,
+                RowCount = 3,
+                Padding = new Padding(10, 10, 16, 10),
                 BackColor = UiTheme.Surface
             };
+            _hostListado.RowStyles.Add(new RowStyle(SizeType.Absolute, AlturaFiltrosListado));
+            _hostListado.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            _hostListado.RowStyles.Add(new RowStyle(SizeType.Absolute, 74F));
 
-            _btnModoCaptura = new Button { Text = "Captura", Size = new Size(110, 32), Margin = new Padding(0, 0, 8, 0) };
-            _btnModoListado = new Button { Text = "Listado", Size = new Size(110, 32), Margin = new Padding(0, 0, 12, 0) };
-            _lblModoRecepcion = new Label
-            {
-                AutoSize = true,
-                Margin = new Padding(8, 8, 0, 0),
-                ForeColor = UiTheme.TextMuted,
-                Font = UiTheme.FontRegular,
-                Text = "Complete los datos del ticket"
-            };
+            _panelFiltrosListado.Dock = DockStyle.Fill;
+            _panelFiltrosListado.Visible = true;
+            _panelGrillaRecepcion.Dock = DockStyle.Fill;
+            _panelGrillaRecepcion.Visible = true;
 
-            UiTheme.StylePrimaryButton(_btnModoCaptura);
-            UiTheme.StyleSecondaryButton(_btnModoListado);
-            _btnModoCaptura.Width = 110;
-            _btnModoCaptura.Height = 32;
-            _btnModoListado.Width = 110;
-            _btnModoListado.Height = 32;
+            _hostListado.Controls.Add(_panelFiltrosListado, 0, 0);
+            _hostListado.Controls.Add(_panelGrillaRecepcion, 0, 1);
 
-            _btnModoCaptura.Click += (s, e) => AplicarModoRecepcion(false);
-            _btnModoListado.Click += (s, e) =>
-            {
-                nuevo = false;
-                btnGuardar.Text = "Buscar";
-                txtNroTcicket.ReadOnly = false;
-                cbEstatus.Enabled = true;
-                AplicarModoRecepcion(true);
-            };
+            _tpListado.Controls.Add(_hostListado);
+            _tpListado.ResumeLayout(true);
+        }
 
-            bar.Controls.Add(_btnModoCaptura);
-            bar.Controls.Add(_btnModoListado);
-            bar.Controls.Add(_lblModoRecepcion);
-            return bar;
+        public void IrAPasoCapturaDatos()
+        {
+            AplicarModoRecepcion(false);
+            if (_tcPasosCaptura != null && _tcPasosCaptura.TabPages.Contains(dtpHasta))
+                _tcPasosCaptura.SelectedTab = dtpHasta;
         }
 
         private Panel CrearPanelFormulario()
@@ -183,7 +215,7 @@ namespace principal
                 Dock = DockStyle.Fill,
                 BackColor = UiTheme.Surface,
                 AutoScroll = true,
-                Padding = new Padding(0, 0, 4, 0)
+                Padding = new Padding(0, 0, 4, 14)
             };
 
             var stack = new TableLayoutPanel
@@ -203,14 +235,14 @@ namespace principal
             ReconstruirPanelGuia();
             _panelMetaRecepcion = CrearPanelMeta();
 
-            pInicio.MinimumSize = new Size(0, 168);
-            pInicio.Height = 168;
+            pInicio.MinimumSize = new Size(0, AlturaCardInicio);
+            pInicio.Height = AlturaCardInicio;
             pInicio.Dock = DockStyle.Top;
-            pGuia.MinimumSize = new Size(0, 168);
-            pGuia.Height = 168;
+            pGuia.MinimumSize = new Size(0, AlturaCardGuia);
+            pGuia.Height = AlturaCardGuia;
             pGuia.Dock = DockStyle.Top;
-            _panelMetaRecepcion.MinimumSize = new Size(0, 118);
-            _panelMetaRecepcion.Height = 118;
+            _panelMetaRecepcion.MinimumSize = new Size(0, AlturaCardMeta);
+            _panelMetaRecepcion.Height = AlturaCardMeta;
             _panelMetaRecepcion.Dock = DockStyle.Top;
             pInicio.Margin = new Padding(0, 0, 0, 10);
             pGuia.Margin = new Padding(0, 0, 0, 10);
@@ -225,67 +257,84 @@ namespace principal
         public void AplicarModoRecepcion(bool listado)
         {
             _modoListado = listado;
-            if (_hostDatosRecepcion == null) return;
+            if (_tpCaptura == null || _tpListado == null) return;
+
+            var destino = listado ? _tpListado : _tpCaptura;
+            if (tcRecepcion.SelectedTab != destino)
+                tcRecepcion.SelectedTab = destino;
 
             if (listado)
             {
-                _lblModoRecepcion.Text = "Busque recepciones y haga doble clic para abrirlas";
-                _hostDatosRecepcion.RowStyles[1] = new RowStyle(SizeType.Absolute, AlturaFiltrosListado);
-                _hostDatosRecepcion.RowStyles[2] = new RowStyle(SizeType.Percent, 100F);
-                if (_panelFiltrosListado != null)
-                {
-                    _panelFiltrosListado.Visible = true;
-                    _panelFiltrosListado.BringToFront();
-                }
-                if (_panelFormularioRecepcion != null)
-                    _panelFormularioRecepcion.Visible = false;
-                if (_panelGrillaRecepcion != null)
-                    _panelGrillaRecepcion.Visible = true;
                 PrepararFiltrosListado();
-                UiTheme.StyleSecondaryButton(_btnModoCaptura);
-                UiTheme.StylePrimaryButton(_btnModoListado);
+                AnclarPanelAcciones(_hostListado, 2);
             }
             else
             {
-                _lblModoRecepcion.Text = "Complete o edite los datos del ticket";
-                _hostDatosRecepcion.RowStyles[1] = new RowStyle(SizeType.Percent, 100F);
-                _hostDatosRecepcion.RowStyles[2] = new RowStyle(SizeType.Absolute, 0F);
-                if (_panelFiltrosListado != null)
-                    _panelFiltrosListado.Visible = false;
-                if (_panelFormularioRecepcion != null)
-                {
-                    _panelFormularioRecepcion.Visible = true;
-                    _panelFormularioRecepcion.BringToFront();
-                    RestaurarFormularioCaptura();
-                }
-                if (_panelGrillaRecepcion != null)
-                    _panelGrillaRecepcion.Visible = false;
-                // Hasta solo aplica en listado.
+                RestaurarFormularioCaptura();
                 if (rbtFechaHasta != null) rbtFechaHasta.Visible = false;
                 if (dtpFechaHasta != null) dtpFechaHasta.Visible = false;
-                UiTheme.StylePrimaryButton(_btnModoCaptura);
-                UiTheme.StyleSecondaryButton(_btnModoListado);
+                AnclarPanelAcciones(_hostDatosRecepcion, 1);
+                if (lbTotal != null) lbTotal.Visible = false;
             }
 
-            _btnModoCaptura.Width = 110;
-            _btnModoCaptura.Height = 32;
-            _btnModoListado.Width = 110;
-            _btnModoListado.Height = 32;
-            ActualizarEspacioGrilla();
+            ActualizarBotonesAccionModo();
+        }
+
+        private void ActualizarBotonesAccionModo()
+        {
+            if (btnCancelar != null) btnCancelar.Visible = true;
+
+            if (_modoListado)
+            {
+                if (btnGuardar != null) btnGuardar.Visible = false;
+                if (btnAnular != null) btnAnular.Visible = false;
+                if (btnImprimir != null) btnImprimir.Visible = false;
+                if (btnExportar != null) btnExportar.Visible = true;
+                return;
+            }
+
+            if (btnExportar != null) btnExportar.Visible = false;
+            if (btnGuardar != null)
+            {
+                btnGuardar.Visible = true;
+                btnGuardar.Text = "Guardar";
+                UiTheme.StylePrimaryButton(btnGuardar);
+                btnGuardar.Size = new Size(120, 38);
+            }
+
+            bool tieneRegistro = objRecepcion != null && objRecepcion.id > 0;
+            if (btnAnular != null)
+                btnAnular.Visible = tieneRegistro;
+            if (btnImprimir != null)
+                btnImprimir.Visible = tieneRegistro
+                    && objRecepcion.id_estatus >= 4
+                    && objRecepcion.id_estatus <= 6;
+        }
+
+        private void AnclarPanelAcciones(TableLayoutPanel host, int fila)
+        {
+            if (_panelAccionesRecepcion == null || host == null) return;
+            if (_panelAccionesRecepcion.Parent == host)
+            {
+                host.SetCellPosition(_panelAccionesRecepcion, new TableLayoutPanelCellPosition(0, fila));
+                return;
+            }
+            _panelAccionesRecepcion.Parent?.Controls.Remove(_panelAccionesRecepcion);
+            host.Controls.Add(_panelAccionesRecepcion, 0, fila);
         }
 
         private void RestaurarFormularioCaptura()
         {
             if (pInicio == null || pGuia == null || _panelMetaRecepcion == null) return;
-            pInicio.MinimumSize = new Size(0, 168);
-            pInicio.Height = 168;
+            pInicio.MinimumSize = new Size(0, AlturaCardInicio);
+            pInicio.Height = AlturaCardInicio;
             pInicio.Visible = true;
             pGuia.Visible = true;
-            pGuia.MinimumSize = new Size(0, 168);
-            pGuia.Height = 168;
+            pGuia.MinimumSize = new Size(0, AlturaCardGuia);
+            pGuia.Height = AlturaCardGuia;
             _panelMetaRecepcion.Visible = true;
-            _panelMetaRecepcion.MinimumSize = new Size(0, 118);
-            _panelMetaRecepcion.Height = 118;
+            _panelMetaRecepcion.MinimumSize = new Size(0, AlturaCardMeta);
+            _panelMetaRecepcion.Height = AlturaCardMeta;
             if (label3 != null) label3.Visible = true;
             if (txtConductor != null) txtConductor.Visible = true;
             if (btnBuscarConductor != null) btnBuscarConductor.Visible = true;
@@ -297,6 +346,18 @@ namespace principal
             if (txtObservaciones != null) txtObservaciones.Visible = true;
             if (btnAgregarSilos != null) btnAgregarSilos.Visible = true;
             if (btnEditarSilos != null) btnEditarSilos.Visible = true;
+            ConfigurarTicketAutogenerado();
+        }
+
+        public void EstilarBotonCampo(Button btn, string texto)
+        {
+            if (btn == null) return;
+            bool cambiar = string.Equals(texto, "Cambiar", StringComparison.OrdinalIgnoreCase);
+            int ancho = cambiar ? 100 : 88;
+            if (cambiar)
+                UiTheme.StyleCompactPrimaryButton(btn, texto, ancho, 30);
+            else
+                UiTheme.StyleCompactSecondaryButton(btn, texto, ancho, 30);
         }
 
         private Panel CrearPanelFiltrosListado()
@@ -307,7 +368,7 @@ namespace principal
                 Dock = DockStyle.Fill,
                 BackColor = UiTheme.Surface,
                 Padding = new Padding(12, 8, 16, 8),
-                Visible = false
+                Visible = true
             };
 
             // FilterStrip + borde fino. Padding derecho 14 = aire visible dentro del borde.
@@ -433,7 +494,7 @@ namespace principal
             clienteBox.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 52F));
             clienteBox.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             clienteBox.Controls.Add(UiTheme.WrapInputFrame(_cbFiltroLetraCliente), 0, 0);
-            clienteBox.Controls.Add(_txtFiltroCliente, 1, 0);
+            clienteBox.Controls.Add(UiTheme.WrapInputFrame(_txtFiltroCliente), 1, 0);
 
             // Solo campos de filtro; huecos = Absolute spacers (Margin=0 en todas las celdas).
             var row1 = CrearFilaFiltrosListado(
@@ -526,7 +587,7 @@ namespace principal
                 Padding = new Padding(0)
             };
             cell.RowStyles.Add(new RowStyle(SizeType.Absolute, 18F));
-            cell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            cell.RowStyles.Add(new RowStyle(SizeType.Absolute, AlturaFilaFiltro));
 
             if (pair == null || pair.Length == 0)
             {
@@ -655,9 +716,6 @@ namespace principal
             label6.AutoSize = true;
             label6.Font = UiTheme.FontBold;
             label6.ForeColor = UiTheme.Primary;
-            lbTotal.AutoSize = true;
-            lbTotal.Font = UiTheme.FontBold;
-            lbTotal.ForeColor = UiTheme.Accent;
 
             var header = new FlowLayoutPanel
             {
@@ -667,10 +725,9 @@ namespace principal
                 BackColor = UiTheme.Card
             };
             header.Controls.Add(label6);
-            header.Controls.Add(lbTotal);
 
             // Textos explícitos: el Designer tenía label3/label4 cruzados.
-            label1.Text = "Nro ticket";
+            label1.Text = "Nro ticket (auto)";
             label2.Text = "Fecha";
             label5.Text = "Producto";
             label3.Text = "Cédula conductor";
@@ -678,8 +735,7 @@ namespace principal
             label4.Text = "Placa";
             rbtFechaHasta.Text = "Hasta";
 
-            UiTheme.StyleSecondaryButton(btnBuscarConductor);
-            btnBuscarConductor.Text = "Buscar";
+            EstilarBotonCampo(btnBuscarConductor, "Buscar");
             var conductorBox = CrearCampoConBoton(txtConductor, btnBuscarConductor);
 
             // Hasta solo útil en listado; oculto en captura.
@@ -724,35 +780,36 @@ namespace principal
                 RowCount = 3,
                 BackColor = UiTheme.Card
             };
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 26F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 45F));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 55F));
 
-            var header = new TableLayoutPanel
+            var header = new FlowLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                ColumnCount = 3,
-                RowCount = 1,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                Padding = new Padding(0, 6, 0, 0),
                 BackColor = UiTheme.Card
             };
-            header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
-            header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140F));
-            header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             label7.Text = "Datos guía";
             label7.AutoSize = true;
             label7.Font = UiTheme.FontBold;
             label7.ForeColor = UiTheme.Primary;
+            label7.Margin = new Padding(0, 2, 16, 0);
             rbTipoNatural.AutoSize = true;
+            rbTipoNatural.Margin = new Padding(0, 2, 12, 0);
             rbJuridica.AutoSize = true;
-            header.Controls.Add(label7, 0, 0);
-            header.Controls.Add(rbTipoNatural, 1, 0);
-            header.Controls.Add(rbJuridica, 2, 0);
+            rbJuridica.Margin = new Padding(0, 2, 0, 0);
+            header.Controls.Add(label7);
+            header.Controls.Add(rbTipoNatural);
+            header.Controls.Add(rbJuridica);
 
             label8.Text = "Nro guía";
-            label9.Text = "Peso guía";
+            label9.Text = "Peso guía (Kg)";
             var rowGuia = CrearFilaCampos(
                 new Control[] { label8, txtNroguia },
-                new Control[] { label9, CrearCampoConUnidad(txtPesoGuia, label10) },
+                new Control[] { label9, txtPesoGuia },
                 null,
                 null);
 
@@ -770,8 +827,7 @@ namespace principal
             productorId.Controls.Add(cbLetras, 0, 0);
             productorId.Controls.Add(txtDIProductor, 1, 0);
 
-            UiTheme.StyleSecondaryButton(btnBuscarProductor);
-            btnBuscarProductor.Text = "Buscar";
+            EstilarBotonCampo(btnBuscarProductor, "Buscar");
             var productorNombre = CrearCampoConBoton(txtNombreProductor, btnBuscarProductor);
 
             lbPersona.Text = "Documento";
@@ -807,32 +863,12 @@ namespace principal
                 Margin = new Padding(0)
             };
             box.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            box.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100F));
+            box.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 108F));
             campo.Dock = DockStyle.Fill;
-            btn.Dock = DockStyle.Fill;
-            btn.Margin = new Padding(6, 0, 0, 0);
+            btn.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btn.Margin = new Padding(6, 3, 0, 3);
             box.Controls.Add(campo, 0, 0);
             box.Controls.Add(btn, 1, 0);
-            return box;
-        }
-
-        private Control CrearCampoConUnidad(Control campo, Label unidad)
-        {
-            var box = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 2,
-                RowCount = 1,
-                Margin = new Padding(0)
-            };
-            box.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            box.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 28F));
-            campo.Dock = DockStyle.Fill;
-            unidad.AutoSize = true;
-            unidad.Anchor = AnchorStyles.Left;
-            unidad.Margin = new Padding(6, 4, 0, 0);
-            box.Controls.Add(campo, 0, 0);
-            box.Controls.Add(unidad, 1, 0);
             return box;
         }
 
@@ -869,7 +905,7 @@ namespace principal
                 BackColor = UiTheme.Card
             };
             cell.RowStyles.Add(new RowStyle(SizeType.Absolute, 18F));
-            cell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            cell.RowStyles.Add(new RowStyle(SizeType.Absolute, AlturaFilaCampo));
 
             if (pair == null || pair.Length == 0)
             {
@@ -894,8 +930,12 @@ namespace principal
             cell.Controls.Add(label, 0, 0);
             if (pair.Length > 1 && pair[1] != null)
             {
-                pair[1].Dock = DockStyle.Fill;
-                cell.Controls.Add(pair[1], 0, 1);
+                Control campo = pair[1] is DateTimePicker
+                    ? UiTheme.WrapInputFrame(pair[1])
+                    : pair[1];
+                campo.Dock = DockStyle.Fill;
+                campo.Margin = new Padding(0);
+                cell.Controls.Add(campo, 0, 1);
             }
             row.Controls.Add(cell, col, 0);
         }
@@ -906,8 +946,8 @@ namespace principal
             {
                 Dock = DockStyle.Top,
                 BackColor = UiTheme.Card,
-                Padding = new Padding(14, 10, 14, 8),
-                Height = 118
+                Padding = new Padding(14, 10, 14, 14),
+                Height = AlturaCardMeta
             };
 
             var grid = new TableLayoutPanel
@@ -917,7 +957,7 @@ namespace principal
                 RowCount = 2,
                 BackColor = UiTheme.Card
             };
-            grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+            grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 44F));
             grid.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
             var top = new TableLayoutPanel
@@ -946,8 +986,8 @@ namespace principal
             btnEditarSilos.Text = "Editar";
             btnAgregarSilos.Dock = DockStyle.Fill;
             btnEditarSilos.Dock = DockStyle.Fill;
-            btnAgregarSilos.Margin = new Padding(8, 2, 4, 2);
-            btnEditarSilos.Margin = new Padding(4, 2, 0, 2);
+            btnAgregarSilos.Margin = new Padding(8, 4, 4, 4);
+            btnEditarSilos.Margin = new Padding(4, 4, 0, 4);
 
             label11.Text = "Estatus";
             label11.AutoSize = true;
@@ -978,6 +1018,8 @@ namespace principal
             label24.ForeColor = UiTheme.TextMuted;
             txtObservaciones.Dock = DockStyle.Fill;
             txtObservaciones.Multiline = true;
+            txtObservaciones.Margin = new Padding(0, 2, 0, 4);
+            txtObservaciones.MinimumSize = new Size(0, 52);
             lbAnulado.AutoSize = true;
             lbAnulado.Anchor = AnchorStyles.Left;
             obs.Controls.Add(label24, 0, 0);
@@ -999,15 +1041,37 @@ namespace principal
                 Padding = new Padding(8)
             };
 
+            var headerBar = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                Height = 28,
+                ColumnCount = 2,
+                RowCount = 1,
+                BackColor = UiTheme.Card,
+                Padding = new Padding(0, 0, 4, 4)
+            };
+            headerBar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            headerBar.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
             var title = new Label
             {
                 Text = "Resultados  ·  clic en encabezado para filtrar  ·  doble clic para abrir",
                 Font = UiTheme.FontBold,
                 ForeColor = UiTheme.Primary,
-                Dock = DockStyle.Top,
-                Height = 24,
+                Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleLeft
             };
+
+            lbTotal.AutoSize = true;
+            lbTotal.Font = UiTheme.FontBold;
+            lbTotal.ForeColor = UiTheme.Accent;
+            lbTotal.TextAlign = ContentAlignment.MiddleRight;
+            lbTotal.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lbTotal.Visible = false;
+            lbTotal.Margin = new Padding(8, 4, 0, 0);
+
+            headerBar.Controls.Add(title, 0, 0);
+            headerBar.Controls.Add(lbTotal, 1, 0);
 
             dgvRecepciones.Dock = DockStyle.Fill;
             dgvRecepciones.BorderStyle = BorderStyle.None;
@@ -1026,8 +1090,26 @@ namespace principal
                 _filtroRecepciones = new GridHeaderFilter(dgvRecepciones);
 
             panel.Controls.Add(dgvRecepciones);
-            panel.Controls.Add(title);
+            panel.Controls.Add(headerBar);
             return panel;
+        }
+
+        public void ActualizarTotalesListado(decimal totalNeto, decimal totalAcondicionado, int cantidad)
+        {
+            if (lbTotal == null) return;
+            if (cantidad == 0)
+            {
+                lbTotal.Visible = false;
+                lbTotal.Text = string.Empty;
+                return;
+            }
+
+            lbTotal.Visible = _modoListado;
+            lbTotal.Text = string.Format(
+                "Peso N. = {0:N0}   ·   Peso Acond. = {1:N2}   ·   {2} registro(s)",
+                totalNeto,
+                totalAcondicionado,
+                cantidad);
         }
 
         private FlowLayoutPanel CrearPanelAcciones()
@@ -1054,38 +1136,30 @@ namespace principal
 
         public void ActualizarEspacioGrilla()
         {
-            if (_hostDatosRecepcion == null || _panelGrillaRecepcion == null) return;
-
-            if (_modoListado)
-            {
-                _panelGrillaRecepcion.Visible = true;
-                _hostDatosRecepcion.RowStyles[1] = new RowStyle(SizeType.Absolute, AlturaFiltrosListado);
-                _hostDatosRecepcion.RowStyles[2] = new RowStyle(SizeType.Percent, 100F);
-            }
-            else
-            {
-                _panelGrillaRecepcion.Visible = false;
-                _hostDatosRecepcion.RowStyles[1] = new RowStyle(SizeType.Percent, 100F);
-                _hostDatosRecepcion.RowStyles[2] = new RowStyle(SizeType.Absolute, 0F);
-            }
+            // La grilla vive solo en la pestaña Listado; no requiere ajuste dinámico de filas.
         }
 
         public void ActualizarPasosRecepcion()
         {
-            // Siempre visibles; se habilitan según estatus / modo.
-            if (!tcRecepcion.TabPages.Contains(tpAnalisis))
-                tcRecepcion.TabPages.Add(tpAnalisis);
-            if (!tcRecepcion.TabPages.Contains(tpRomana))
-                tcRecepcion.TabPages.Add(tpRomana);
+            if (_tcPasosCaptura == null) return;
+
+            if (!_tcPasosCaptura.TabPages.Contains(tpAnalisis))
+                _tcPasosCaptura.TabPages.Add(tpAnalisis);
+            if (!_tcPasosCaptura.TabPages.Contains(tpRomana))
+                _tcPasosCaptura.TabPages.Add(tpRomana);
 
             bool tieneRegistro = objRecepcion != null && objRecepcion.id > 0;
-            tpAnalisis.Enabled = tieneRegistro;
-            tpRomana.Enabled = tieneRegistro && objRecepcion.id_estatus >= 2;
+            bool anulado = tieneRegistro && objRecepcion.id_estatus == 6;
+            bool analisisNoAplica = rbAnalisisNo != null && rbAnalisisNo.Checked;
+            tpAnalisis.Enabled = tieneRegistro && !anulado;
+            // Sin análisis, el trámite pasa a pesaje al existir el ticket (no espera estatus 2).
+            tpRomana.Enabled = tieneRegistro && !anulado
+                && (objRecepcion.id_estatus >= 2 || analisisNoAplica);
 
-            if (!tpAnalisis.Enabled && tcRecepcion.SelectedTab == tpAnalisis)
-                tcRecepcion.SelectedTab = dtpHasta;
-            if (!tpRomana.Enabled && tcRecepcion.SelectedTab == tpRomana)
-                tcRecepcion.SelectedTab = tieneRegistro ? tpAnalisis : dtpHasta;
+            if (!tpAnalisis.Enabled && _tcPasosCaptura.SelectedTab == tpAnalisis)
+                _tcPasosCaptura.SelectedTab = dtpHasta;
+            if (!tpRomana.Enabled && _tcPasosCaptura.SelectedTab == tpRomana)
+                _tcPasosCaptura.SelectedTab = tieneRegistro ? tpAnalisis : dtpHasta;
         }
 
         public void ConfigurarColumnasRecepcionVisibles()
@@ -1147,10 +1221,19 @@ namespace principal
             label28.ForeColor = UiTheme.Primary;
             label28.Margin = new Padding(0, 6, 16, 0);
             rbAnalisis.Margin = new Padding(0, 6, 12, 0);
-            rbAnalisisNo.Margin = new Padding(0, 6, 0, 0);
+            rbAnalisisNo.Margin = new Padding(0, 6, 16, 0);
+            var notaAnalisis = new Label
+            {
+                Text = "Los trámites de recepción no llevan análisis",
+                AutoSize = true,
+                ForeColor = UiTheme.TextMuted,
+                Font = UiTheme.FontRegular,
+                Margin = new Padding(8, 8, 0, 0)
+            };
             top.Controls.Add(label28);
             top.Controls.Add(rbAnalisis);
             top.Controls.Add(rbAnalisisNo);
+            top.Controls.Add(notaAnalisis);
 
             panel2.Dock = DockStyle.Fill;
             panel2.BorderStyle = BorderStyle.None;
@@ -1161,6 +1244,14 @@ namespace principal
             label33.ForeColor = UiTheme.Primary;
             lbAdvertencia.ForeColor = UiTheme.Danger;
             dgvAnalisis.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dgvAnalisis.BorderStyle = BorderStyle.None;
+            dgvAnalisis.BackgroundColor = UiTheme.Card;
+            dgvAnalisis.EnableHeadersVisualStyles = false;
+            dgvAnalisis.ColumnHeadersDefaultCellStyle.BackColor = UiTheme.Primary;
+            dgvAnalisis.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvAnalisis.ColumnHeadersDefaultCellStyle.Font = UiTheme.FontBold;
+            dgvAnalisis.ColumnHeadersHeight = 32;
+            dgvAnalisis.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
             var actions = new FlowLayoutPanel
             {
@@ -1212,23 +1303,47 @@ namespace principal
                 BackColor = UiTheme.Surface
             };
             host.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            host.RowStyles.Add(new RowStyle(SizeType.Absolute, 58F));
+            host.RowStyles.Add(new RowStyle(SizeType.Absolute, 74F));
 
-            panel1.Dock = DockStyle.Fill;
+            var scroll = new Panel
+            {
+                Dock = DockStyle.Fill,
+                AutoScroll = true,
+                BackColor = UiTheme.Surface,
+                Padding = new Padding(0, 0, 8, 8)
+            };
+
+            var stack = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                ColumnCount = 1,
+                RowCount = 3,
+                BackColor = UiTheme.Surface
+            };
+            stack.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            stack.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            stack.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+            panel1.Controls.Clear();
+            panel1.Dock = DockStyle.Top;
+            panel1.AutoSize = true;
+            panel1.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panel1.BorderStyle = BorderStyle.None;
             panel1.BackColor = UiTheme.Card;
-            panel1.AutoScroll = true;
-            panel1.Padding = new Padding(16);
-            if (!panel1.Controls.Contains(btnPesoEntrada))
-                panel1.Controls.Add(btnPesoEntrada);
-            if (!panel1.Controls.Contains(btnPesoSalida))
-                panel1.Controls.Add(btnPesoSalida);
+            panel1.Padding = new Padding(16, 12, 16, 16);
+            panel1.Margin = new Padding(0, 0, 0, 10);
+
+            ReconstruirPanelPesaje();
+
+            stack.Controls.Add(panel1, 0, 0);
+            scroll.Controls.Add(stack);
 
             var actions = new FlowLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.LeftToRight,
-                Padding = new Padding(2, 8, 2, 2),
+                Padding = new Padding(8, 10, 8, 14),
                 BackColor = UiTheme.Surface
             };
             foreach (var btn in new[] { btnGuardarRomana, btnCancelarRomana })
@@ -1238,15 +1353,201 @@ namespace principal
                 actions.Controls.Add(btn);
             }
             UiTheme.ApplyActionButtons(actions);
-            UiTheme.StylePrimaryButton(btnPesoEntrada);
-            UiTheme.StylePrimaryButton(btnPesoSalida);
-            btnPesoEntrada.Size = new Size(150, 28);
-            btnPesoSalida.Size = new Size(150, 28);
 
-            host.Controls.Add(panel1, 0, 0);
+            host.Controls.Add(scroll, 0, 0);
             host.Controls.Add(actions, 0, 1);
             tpRomana.Controls.Add(host);
             tpRomana.ResumeLayout(true);
+        }
+
+        private void ReconstruirPanelPesaje()
+        {
+            var root = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                ColumnCount = 1,
+                RowCount = 5,
+                BackColor = UiTheme.Card
+            };
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 64F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 64F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 64F));
+
+            label13.Text = "Pesaje";
+            label13.AutoSize = true;
+            label13.Font = UiTheme.FontBold;
+            label13.ForeColor = UiTheme.Primary;
+            label13.Margin = new Padding(0, 8, 16, 0);
+            label25.Visible = false;
+            rbAutomatic.AutoSize = true;
+            rbAutomatic.ForeColor = UiTheme.TextPrimary;
+            rbAutomatic.Margin = new Padding(0, 8, 16, 0);
+            rbManual.AutoSize = true;
+            rbManual.ForeColor = UiTheme.TextPrimary;
+            rbManual.Margin = new Padding(0, 8, 0, 0);
+
+            var header = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                BackColor = UiTheme.Card
+            };
+            header.Controls.Add(label13);
+            header.Controls.Add(rbAutomatic);
+            header.Controls.Add(rbManual);
+
+            EstilarEtiquetaPesaje(label12, "Peso entrada (Kg)");
+            EstilarEtiquetaPesaje(label15, "Hora entrada");
+            EstilarEtiquetaPesaje(label18, "Peso salida (Kg)");
+            EstilarEtiquetaPesaje(label16, "Hora salida");
+            EstilarEtiquetaPesaje(label20, "Peso neto (Kg)");
+            EstilarEtiquetaPesaje(label22, "Peso acondicionado (Kg)");
+            OcultarEtiquetaUnidad(label10);
+            OcultarEtiquetaUnidad(label14);
+            OcultarEtiquetaUnidad(label17);
+            OcultarEtiquetaUnidad(label19);
+            OcultarEtiquetaUnidad(label21);
+
+            UiTheme.StyleDateTimePicker(dtpHoraentrada);
+            UiTheme.StyleDateTimePicker(dtpHoraSalida);
+            UiTheme.StyleCompactPrimaryButton(btnPesoEntrada, "Tomar peso", 128, 32);
+            UiTheme.StyleCompactPrimaryButton(btnPesoSalida, "Tomar peso", 128, 32);
+            btnPesoEntrada.ForeColor = Color.White;
+            btnPesoSalida.ForeColor = Color.White;
+
+            var rowEntrada = CrearFilaPesaje(
+                CrearCeldaPesaje(label12, txtPesoEntrada),
+                CrearCeldaAccionPesaje(btnPesoEntrada),
+                CrearCeldaPesaje(label15, dtpHoraentrada));
+
+            var rowSalida = CrearFilaPesaje(
+                CrearCeldaPesaje(label18, txtPesoSalida),
+                CrearCeldaAccionPesaje(btnPesoSalida),
+                CrearCeldaPesaje(label16, dtpHoraSalida));
+
+            label26.Text = "Resultado";
+            label26.AutoSize = true;
+            label26.Font = UiTheme.FontBold;
+            label26.ForeColor = UiTheme.Primary;
+            label26.Dock = DockStyle.Fill;
+            label26.TextAlign = ContentAlignment.MiddleLeft;
+
+            txtPesoNeto.ReadOnly = true;
+            txtPesoAcondicionado.ReadOnly = true;
+            txtPesoNeto.BackColor = UiTheme.FilterStrip;
+            txtPesoAcondicionado.BackColor = UiTheme.FilterStrip;
+            txtPesoNeto.TabStop = false;
+            txtPesoAcondicionado.TabStop = false;
+
+            var rowResultado = CrearFilaPesaje(
+                CrearCeldaPesaje(label20, txtPesoNeto),
+                CrearCeldaPesaje(label22, txtPesoAcondicionado),
+                null);
+
+            foreach (Control c in new Control[] {
+                txtPesoEntrada, txtPesoSalida, txtPesoNeto, txtPesoAcondicionado,
+                dtpHoraentrada, dtpHoraSalida })
+                c.Dock = DockStyle.Fill;
+
+            root.Controls.Add(header, 0, 0);
+            root.Controls.Add(rowEntrada, 0, 1);
+            root.Controls.Add(rowSalida, 0, 2);
+            root.Controls.Add(label26, 0, 3);
+            root.Controls.Add(rowResultado, 0, 4);
+            panel1.Controls.Add(root);
+            ActualizarModoPesaje();
+        }
+
+        private static void EstilarEtiquetaPesaje(Label etiqueta, string texto)
+        {
+            etiqueta.Text = texto;
+            etiqueta.AutoSize = false;
+            etiqueta.Visible = true;
+            etiqueta.Dock = DockStyle.Fill;
+            etiqueta.TextAlign = ContentAlignment.BottomLeft;
+            etiqueta.ForeColor = UiTheme.TextMuted;
+            etiqueta.Font = UiTheme.FontRegular;
+            etiqueta.BackColor = UiTheme.Card;
+        }
+
+        private static void OcultarEtiquetaUnidad(Label unidad)
+        {
+            if (unidad == null) return;
+            unidad.Visible = false;
+            unidad.Text = string.Empty;
+            unidad.Parent?.Controls.Remove(unidad);
+        }
+
+        private TableLayoutPanel CrearFilaPesaje(Control c1, Control c2, Control c3)
+        {
+            var row = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 3,
+                RowCount = 1,
+                BackColor = UiTheme.Card,
+                Margin = new Padding(0, 2, 0, 2)
+            };
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38F));
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24F));
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38F));
+            if (c1 != null) row.Controls.Add(c1, 0, 0);
+            if (c2 != null) row.Controls.Add(c2, 1, 0);
+            if (c3 != null) row.Controls.Add(c3, 2, 0);
+            return row;
+        }
+
+        private Control CrearCeldaPesaje(Label etiqueta, Control campo)
+        {
+            var cell = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                Margin = new Padding(0, 0, 12, 0),
+                BackColor = UiTheme.Card
+            };
+            cell.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            cell.RowStyles.Add(new RowStyle(SizeType.Absolute, AlturaControlCampo));
+            etiqueta.Visible = true;
+            etiqueta.AutoSize = false;
+            etiqueta.Dock = DockStyle.Fill;
+            etiqueta.TextAlign = ContentAlignment.BottomLeft;
+            etiqueta.ForeColor = UiTheme.TextMuted;
+            etiqueta.Font = UiTheme.FontRegular;
+            etiqueta.BackColor = UiTheme.Card;
+            Control hosted = (campo is DateTimePicker || campo is TextBox)
+                ? UiTheme.WrapInputFrame(campo)
+                : campo;
+            hosted.Dock = DockStyle.Fill;
+            hosted.Margin = new Padding(0);
+            cell.Controls.Add(etiqueta, 0, 0);
+            cell.Controls.Add(hosted, 0, 1);
+            return cell;
+        }
+
+        private Control CrearCeldaAccionPesaje(Button btn)
+        {
+            var cell = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                Margin = new Padding(0, 0, 12, 0),
+                BackColor = UiTheme.Card
+            };
+            cell.RowStyles.Add(new RowStyle(SizeType.Absolute, 22F));
+            cell.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
+            var spacer = new Label { Text = " ", Dock = DockStyle.Fill, BackColor = UiTheme.Card };
+            btn.Anchor = AnchorStyles.Left | AnchorStyles.Top;
+            btn.Margin = new Padding(0, 0, 0, 0);
+            cell.Controls.Add(spacer, 0, 0);
+            cell.Controls.Add(btn, 0, 1);
+            return cell;
         }
 
         private void EstilizarControlesRecepcion()
@@ -1261,18 +1562,77 @@ namespace principal
                 if (c is TextBox tb) UiTheme.StyleTextBox(tb);
             }
 
-            UiTheme.StyleSecondaryButton(btnBuscarConductor);
-            UiTheme.StyleSecondaryButton(btnBuscarProductor);
-            btnBuscarConductor.Text = "Buscar";
-            btnBuscarProductor.Text = "Buscar";
             UiTheme.StyleAddButton(btnAgregarSilos);
             UiTheme.StyleEditButton(btnEditarSilos);
             btnAgregarSilos.Text = "Agregar";
             btnEditarSilos.Text = "Editar";
             btnAgregarSilos.Width = 110;
             btnEditarSilos.Width = 100;
-            btnAgregarSilos.Height = 28;
-            btnEditarSilos.Height = 28;
+            btnAgregarSilos.Height = 32;
+            btnEditarSilos.Height = 32;
+            btnAgregarSilos.Tag = UiTheme.CompactActionTag;
+            btnEditarSilos.Tag = UiTheme.CompactActionTag;
+
+            if (txtPesoNeto != null)
+            {
+                txtPesoNeto.ReadOnly = true;
+                txtPesoNeto.BackColor = UiTheme.FilterStrip;
+            }
+            if (txtPesoAcondicionado != null)
+            {
+                txtPesoAcondicionado.ReadOnly = true;
+                txtPesoAcondicionado.BackColor = UiTheme.FilterStrip;
+            }
+        }
+
+        public void ConfigurarColumnasAnalisis()
+        {
+            if (dgvAnalisis == null || dgvAnalisis.Columns.Count == 0) return;
+
+            CatalogGridHelper.HideColumn(dgvAnalisis, "id");
+            CatalogGridHelper.HideColumn(dgvAnalisis, "id_item");
+            CatalogGridHelper.SetHeader(dgvAnalisis, "nombre", "Parámetro");
+            CatalogGridHelper.SetHeader(dgvAnalisis, "menor", "Mínimo");
+            CatalogGridHelper.SetHeader(dgvAnalisis, "mayor", "Máximo");
+            CatalogGridHelper.SetHeader(dgvAnalisis, "valor_resultado", "Resultado");
+        }
+
+        public void ConfigurarTicketAutogenerado()
+        {
+            if (txtNroTcicket == null) return;
+            txtNroTcicket.ReadOnly = true;
+            txtNroTcicket.TabStop = false;
+            txtNroTcicket.BackColor = UiTheme.FilterStrip;
+            txtNroTcicket.ForeColor = UiTheme.TextMuted;
+            txtNroTcicket.Cursor = Cursors.Default;
+        }
+
+        public void ConfigurarAnalisisSinUso()
+        {
+            if (rbAnalisisNo != null)
+            {
+                this.rbAnalisis.CheckedChanged -= rbResumen_CheckedChanged;
+                rbAnalisisNo.Checked = true;
+                if (rbAnalisis != null) rbAnalisis.Checked = false;
+            }
+
+            if (rbAnalisis != null) rbAnalisis.Enabled = false;
+            if (rbAnalisisNo != null) rbAnalisisNo.Enabled = false;
+            if (dgvAnalisis != null) dgvAnalisis.Enabled = false;
+            if (panel2 != null) panel2.Enabled = false;
+            if (btnGuardarAnalisis != null)
+            {
+                btnGuardarAnalisis.Enabled = false;
+                btnGuardarAnalisis.Visible = false;
+            }
+            if (btnEliminarAnalisis != null)
+            {
+                btnEliminarAnalisis.Enabled = false;
+                btnEliminarAnalisis.Visible = false;
+            }
+            if (btnCancelarAnalisis != null) btnCancelarAnalisis.Visible = true;
+
+            objRecepcion.resumen = false;
         }
     }
 }

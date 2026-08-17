@@ -108,6 +108,7 @@ namespace principal
                     dgvAnalisis.Columns["nombre"].ReadOnly = true;
                     dgvAnalisis.Columns["menor"].ReadOnly = true;
                     dgvAnalisis.Columns["mayor"].ReadOnly = true;
+                    ConfigurarColumnasAnalisis();
                     if (analisis)
                     {
                         //txtObservaciones.Text = string.Empty;
@@ -158,8 +159,6 @@ namespace principal
             }
             if (!nuevo)
             {
-                txtNroTcicket.ReadOnly = false;
-                btnGuardar.Text = "Buscar";
                 cbEstatus.Enabled = true;
                 dtpFecha.Format = DateTimePickerFormat.Custom;
                 dtpFecha.CustomFormat = " ";
@@ -269,7 +268,7 @@ namespace principal
             {
                 txtConductor.Enabled = true;
                 txtNombreConductor.Enabled = true;
-                btnBuscarConductor.Text = "Buscar";
+                EstilarBotonCampo(btnBuscarConductor, "Buscar");
                 txtConductor.Text = string.Empty;
                 txtNombreConductor.Text = string.Empty;
                objRecepcion.id_conductor = 0;
@@ -310,7 +309,7 @@ namespace principal
                         txtNombreConductor.Text = nombre;
                         txtNombreConductor.Enabled = false;
                         txtConductor.Enabled = false;
-                        btnBuscarConductor.Text = "Cambiar";
+                        EstilarBotonCampo(btnBuscarConductor, "Cambiar");
                     }
                 }
                 else
@@ -327,7 +326,7 @@ namespace principal
                         txtNombreConductor.Enabled = false;
 
                         txtConductor.Enabled = false;
-                        btnBuscarConductor.Text = "Cambiar";
+                        EstilarBotonCampo(btnBuscarConductor, "Cambiar");
                     }
 
                 }
@@ -516,7 +515,7 @@ namespace principal
             txtDIProductor.Text = string.Empty;
             txtNombreProductor.Text = string.Empty;
             objRecepcion.id_productor = 0;
-            btnBuscarProductor.Text = "Buscar";
+            EstilarBotonCampo(btnBuscarProductor, "Buscar");
             
             lbEjemploletraConductor.Text = "Ejem: G";
             lbEjemploCedulaCondcutor.Text = "Ejem: 123456789";
@@ -532,7 +531,7 @@ namespace principal
             {
                 txtDIProductor.Enabled = true;
                 txtNombreProductor.Enabled = true;
-                btnBuscarProductor.Text = "Buscar";
+                EstilarBotonCampo(btnBuscarProductor, "Buscar");
                 txtDIProductor.Text = string.Empty;
                 txtNombreProductor.Text = string.Empty;
                 objRecepcion.id_productor = 0;
@@ -601,7 +600,7 @@ namespace principal
                         txtDIProductor.Enabled = false;
                         txtNombreProductor.Enabled = false;
                         cbLetras.Enabled = false;
-                        btnBuscarProductor.Text = "Cambiar";
+                        EstilarBotonCampo(btnBuscarProductor, "Cambiar");
                         objRecepcion.id_productor_juridico = cf.id;
                     }
                 }
@@ -627,7 +626,7 @@ namespace principal
                         cbLetras.SelectedItem = cf.cbLetra.SelectedItem;
                         txtDIProductor.Enabled = false;
                         cbLetras.Enabled = false;
-                        btnBuscarProductor.Text = "Cambiar";
+                        EstilarBotonCampo(btnBuscarProductor, "Cambiar");
                     }
 
                 }
@@ -682,7 +681,7 @@ namespace principal
                     txtDIProductor.Enabled = false;
                     txtNombreProductor.Enabled = false;
                     cbLetras.Enabled = false;
-                    btnBuscarProductor.Text = "Cambiar";
+                    EstilarBotonCampo(btnBuscarProductor, "Cambiar");
                 }
             }
             else
@@ -708,7 +707,7 @@ namespace principal
                     cbLetras.SelectedItem = cf.cbLetra.SelectedItem;
                     txtDIProductor.Enabled = false;
                     cbLetras.Enabled = false;
-                    btnBuscarProductor.Text = "Cambiar";
+                    EstilarBotonCampo(btnBuscarProductor, "Cambiar");
                 }
 
             }
@@ -733,7 +732,7 @@ namespace principal
             txtDIProductor.Text = string.Empty;
             txtNombreProductor.Text = string.Empty;
             objRecepcion.id_productor = 0;
-            btnBuscarProductor.Text = "Buscar";
+            EstilarBotonCampo(btnBuscarProductor, "Buscar");
 
             lbEjemploletraConductor.Text = "Ejem: V";
             lbEjemploCedulaCondcutor.Text = "Ejem: 12345678";
@@ -753,7 +752,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiDialog.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             cargarSilos();
 
@@ -778,7 +777,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiDialog.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             
         }
@@ -787,50 +786,8 @@ namespace principal
         {
             try
             {
-                if (btnGuardar.Text == "Buscar")
-                {
-                    if (_modoListado)
-                    {
-                        EjecutarBusquedaListado();
-                        return;
-                    }
-
-                    int producto = 0;
-                    int status = 0;
-                    int silos = 0;
-                    if (!string.IsNullOrWhiteSpace(cbEstatus.Text))
-                    {
-                        status = objRecepcion.id_estatus;
-
-                    }
-                    if (!string.IsNullOrWhiteSpace(cbProducto.Text))
-                    {
-                         producto = objRecepcion.id_producto;
-
-                    }
-                    if (!string.IsNullOrWhiteSpace(cbSilos.Text))
-                    {
-                         silos = objRecepcion.id_silos;
-
-                    }
-
-                    if (dtpFecha.Value > dtpFechaHasta.Value&& !string.IsNullOrWhiteSpace(dtpFechaHasta.Text))
-                    {
-                        MessageBox.Show("La Fecha debe ser menor a la fecha hasta.","Error");
-                        return;
-                    }
-                     resultadodt = rd.buscar(string.IsNullOrWhiteSpace(txtNroTcicket.Text)?0:Convert.ToInt32(txtNroTcicket.Text),producto,objRecepcion.id_conductor,
-                        objRecepcion.id_productor, objRecepcion.id_productor_juridico, txtPlaca.Text, silos, status, string.IsNullOrWhiteSpace(dtpFecha.Text) ? DateTimePicker.MinimumDateTime : dtpFecha.Value.Date, string.IsNullOrWhiteSpace(dtpFechaHasta.Text) ? DateTimePicker.MinimumDateTime : dtpFechaHasta.Value.Date);
-                    if (resultadodt.Rows.Count==0){
-
-                        MessageBox.Show("No se encontraron resultados", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                        return;
-                    }
-                    btnExportar.Enabled = true;
-                    llenarGrid();
+                if (_modoListado)
                     return;
-
-                }
 
                 if (objRecepcion.id_conductor == 0)
                 {
@@ -846,7 +803,7 @@ namespace principal
                     return;
                 objRecepcion.fecha = dtpFecha.Value;
                 objRecepcion.nro_placa = txtPlaca.Text;
-                objRecepcion.resumen = rbAnalisis.Checked;
+                objRecepcion.resumen = false;
                 objRecepcion.id_producto = Convert.ToInt32(((System.Data.DataRowView)(cbProducto.SelectedItem)).Row.ItemArray[0]);
 
                 objRecepcion.nro_guia =txtNroguia.Text;
@@ -866,7 +823,9 @@ namespace principal
 
                     objRecepcion.hora_salida = dtpHoraSalida.Value;
                 }
-               
+
+                if (rbAnalisisNo.Checked && objRecepcion.id_estatus < 3)
+                    objRecepcion.id_estatus = 3;
 
             if (nuevo)
             {
@@ -875,15 +834,30 @@ namespace principal
 
                 resultadodt= rd.insertar(objRecepcion.nro_placa,objRecepcion.id_conductor,objRecepcion.fecha,objRecepcion.nro_guia,objRecepcion.peso_guia,objRecepcion.id_producto,objRecepcion.id_productor,
                     objRecepcion.observaciones, objRecepcion.id_estatus, objRecepcion.peso_bruto, objRecepcion.peso_tara,objRecepcion.id_silos, objRecepcion.hora_entrada, objRecepcion.hora_salida,objRecepcion.id_productor_juridico);
-                MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                if (resultadodt != null && resultadodt.Rows.Count > 0)
+                {
+                    DataRow filaNueva = resultadodt.Rows[0];
+                    if (resultadodt.Columns.Contains("Nro_Ticket"))
+                        objRecepcion.id = Convert.ToInt32(filaNueva["Nro_Ticket"]);
+                    else if (resultadodt.Columns.Contains("id"))
+                        objRecepcion.id = Convert.ToInt32(filaNueva["id"]);
+                    if (objRecepcion.id > 0)
+                    {
+                        nuevo = false;
+                        txtNroTcicket.Text = objRecepcion.id.ToString();
+                        ConfigurarTicketAutogenerado();
+                    }
+                }
+                UiDialog.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 llenarGrid();
+                ActualizarPasosRecepcion();
 
             }
             else
             {
                 if ((id_producto_original <= 3 && objRecepcion.id_producto != id_producto_original) )
                 {
-                     DialogResult result = MessageBox.Show("Ha cambiado el tipo producto. Se eliminara el analisis guardado ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
+                     DialogResult result = UiDialog.Show("Ha cambiado el tipo producto. Se eliminara el analisis guardado ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
                      if (result == DialogResult.Yes)
                      {
                          btnEliminarAnalisis_Click(sender,e);
@@ -896,10 +870,11 @@ namespace principal
 
                 }
                  resultadodt = rd.actualizar(objRecepcion.id,objRecepcion.nro_placa, objRecepcion.id_conductor, objRecepcion.fecha, objRecepcion.nro_guia, objRecepcion.peso_guia, objRecepcion.id_producto, objRecepcion.id_productor,
-                    objRecepcion.observaciones, objRecepcion.id_estatus, objRecepcion.peso_bruto, objRecepcion.peso_tara, objRecepcion.id_silos,rbAnalisis.Checked, objRecepcion.hora_entrada, objRecepcion.hora_salida,objRecepcion.id_productor_juridico);
-                MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    objRecepcion.observaciones, objRecepcion.id_estatus, objRecepcion.peso_bruto, objRecepcion.peso_tara, objRecepcion.id_silos, false, objRecepcion.hora_entrada, objRecepcion.hora_salida,objRecepcion.id_productor_juridico);
+                UiDialog.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 llenarGrid();
                 resultadodt.Dispose();
+                ActualizarPasosRecepcion();
 
 
             }
@@ -926,7 +901,7 @@ namespace principal
                 {
                     if (!int.TryParse(_txtFiltroTicket.Text.Trim(), out nroTicket))
                     {
-                        MessageBox.Show("El nro de ticket debe ser numérico.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        UiDialog.Show("El nro de ticket debe ser numérico.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         _txtFiltroTicket.Focus();
                         return;
                     }
@@ -943,14 +918,14 @@ namespace principal
                     && fechaHasta != DateTimePicker.MinimumDateTime
                     && fechaDesde > fechaHasta)
                 {
-                    MessageBox.Show("La fecha desde debe ser menor o igual a la fecha hasta.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    UiDialog.Show("La fecha desde debe ser menor o igual a la fecha hasta.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 int idConductor = ResolverIdConductorFiltro(_txtFiltroConductor.Text);
                 if (!string.IsNullOrWhiteSpace(_txtFiltroConductor.Text) && idConductor == 0)
                 {
-                    MessageBox.Show("No se encontró conductor con esa cédula.", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    UiDialog.Show("No se encontró conductor con esa cédula.", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     _txtFiltroConductor.Focus();
                     return;
                 }
@@ -961,7 +936,7 @@ namespace principal
                 {
                     if (!ResolverIdsProductorFiltro(_txtFiltroCliente.Text, out idProductor, out idProductorJuridico))
                     {
-                        MessageBox.Show("No se encontró cliente/productor con ese documento.", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        UiDialog.Show("No se encontró cliente/productor con ese documento.", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         _txtFiltroCliente.Focus();
                         return;
                     }
@@ -989,17 +964,16 @@ namespace principal
 
                 if (resultadodt == null || resultadodt.Rows.Count == 0)
                 {
-                    MessageBox.Show("No se encontraron resultados", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    UiDialog.Show("No se encontraron resultados", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     return;
                 }
 
                 btnExportar.Enabled = true;
-                btnGuardar.Text = "Buscar";
                 llenarGrid();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiDialog.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -1127,25 +1101,26 @@ namespace principal
             ActualizarEspacioGrilla();
 
             decimal totalNeto = decimal.Zero;
-            decimal totalAcondiconado = decimal.Zero;
+            decimal totalAcondicionado = decimal.Zero;
+            int cantidad = 0;
             foreach (DataGridViewRow registro in dgvRecepciones.Rows)
             {
                 if (registro.IsNewRow) continue;
+                cantidad++;
                 if (registro.Cells["peso_acondicionado"].Value != null && registro.Cells["peso_acondicionado"].Value != DBNull.Value)
-                    totalAcondiconado += Convert.ToDecimal(registro.Cells["peso_acondicionado"].Value);
+                    totalAcondicionado += Convert.ToDecimal(registro.Cells["peso_acondicionado"].Value);
                 if (registro.Cells["peso_neto"].Value != null && registro.Cells["peso_neto"].Value != DBNull.Value)
                     totalNeto += Convert.ToDecimal(registro.Cells["peso_neto"].Value);
             }
 
-            lbTotal.Visible = true;
-            lbTotal.Text = "  ·  Peso N.= " + totalNeto + "   Peso Acond.= " + totalAcondiconado;
+            ActualizarTotalesListado(totalNeto, totalAcondicionado, cantidad);
 
             AplicarModoRecepcion(true);
 
             if (resultadodt != null && resultadodt.Rows.Count == 1)
             {
                 llenarObjeto(resultadodt.Rows[0]);
-                AplicarModoRecepcion(false);
+                IrAPasoCapturaDatos();
             }
         }
 
@@ -1313,15 +1288,15 @@ namespace principal
          try{
 
                             btnGuardar.Text = "Guardar";
-                            AplicarModoRecepcion(false);
+                            IrAPasoCapturaDatos();
                             ActualizarPasosRecepcion();
                             if (objRecepcion.id_estatus >= 2)
                                 rbManual.Visible = supervisor;
 
                           
                             btnAnular.Visible = true;
-                            txtNroTcicket.ReadOnly = true;
                             txtNroTcicket.Text = objRecepcion.id.ToString();
+                            ConfigurarTicketAutogenerado();
                             cbProducto.SelectedValue = prmRecepcion.id_producto;
                             if(objRecepcion.id_productor>0){
                                List<string>  listaLetrasNaturales = new List<string>();
@@ -1339,7 +1314,7 @@ namespace principal
                                
                                 txtDIProductor.Enabled = false;
                                 txtNombreProductor.Enabled = false;
-                                btnBuscarProductor.Text = "Cambiar";
+                                EstilarBotonCampo(btnBuscarProductor, "Cambiar");
                             }
                             if (objRecepcion.id_productor_juridico > 0)
                             {
@@ -1358,7 +1333,7 @@ namespace principal
                                
                                 txtDIProductor.Enabled = false;
                                 txtNombreProductor.Enabled = false;
-                                btnBuscarProductor.Text = "Cambiar";
+                                EstilarBotonCampo(btnBuscarProductor, "Cambiar");
                                
                             }
 
@@ -1369,25 +1344,25 @@ namespace principal
                                 txtNombreProductor.Text = string.Empty;
                                 txtDIProductor.Enabled = true;
                                 txtNombreProductor.Enabled = true;
-                                btnBuscarProductor.Text = "Buscar";
+                                EstilarBotonCampo(btnBuscarProductor, "Buscar");
                             }
                             if (objRecepcion.id_conductor > 0) {
                                         txtConductor.Text = objRecepcion.cedulaconductor.ToString();
                                         txtNombreConductor.Text = objRecepcion.nombreconductor.ToString();
                                         txtConductor.Enabled = false;
                                         txtNombreConductor.Enabled = false;
-                                        btnBuscarConductor.Text = "Cambiar";
+                                        EstilarBotonCampo(btnBuscarConductor, "Cambiar");
                             }
                             dtpFecha.Value = objRecepcion.fecha;
                             txtPlaca.Text = objRecepcion.nro_placa;
                             txtNroguia.Text = objRecepcion.nro_guia;
                             txtPesoGuia.Text = objRecepcion.peso_guia.ToString();
                             this.rbAnalisis.CheckedChanged -= new System.EventHandler(this.rbResumen_CheckedChanged);
-                            if (objRecepcion.resumen)
-                                rbAnalisis.Checked = true;
-                            else
-                                rbAnalisisNo.Checked = true;
+                            rbAnalisisNo.Checked = true;
+                            rbAnalisis.Checked = false;
                             this.rbAnalisis.CheckedChanged += new System.EventHandler(this.rbResumen_CheckedChanged);
+                            ConfigurarAnalisisSinUso();
+                            ActualizarPasosRecepcion();
                             //cbLetras.SelectedItem = objRecepcion.id_silos;
                             txtObservaciones.Text = objRecepcion.observaciones;
                             //if (supervisor || id_perfil == 3)
@@ -1465,21 +1440,21 @@ namespace principal
         private void btnGuardarRomana_Click(object sender, EventArgs e)
         {
 
-            if (string.IsNullOrWhiteSpace(txtPesoEntrada.Text))
+            if (string.IsNullOrWhiteSpace(txtPesoEntrada.Text) || !TienePeso(txtPesoEntrada.Text))
             {
 
 
-                MessageBox.Show("El Campo Peso Entrada es obligatorio", "Informacion");
+                UiDialog.Show("El Campo Peso Entrada es obligatorio", "Informacion");
                 return;
 
             }
             else {
             
-                if (string.IsNullOrWhiteSpace(dtpHoraentrada.Text))
+                if (!HoraCapturada(dtpHoraentrada))
                 {
 
 
-                    MessageBox.Show("El Campo Hora Entrada es obligatorio", "Informacion");
+                    UiDialog.Show("El Campo Hora Entrada es obligatorio", "Informacion");
                     return;
 
                 }
@@ -1488,11 +1463,11 @@ namespace principal
             }
 
 
-            if ((txtPesoSalida.Text!="0") && string.IsNullOrWhiteSpace(dtpHoraSalida.Text))
+            if (TienePeso(txtPesoSalida.Text) && !HoraCapturada(dtpHoraSalida))
             {
 
 
-                MessageBox.Show("El Campo Hora Salida es obligatorio", "Informacion");
+                UiDialog.Show("El Campo Hora Salida es obligatorio", "Informacion");
                 return;
 
             }
@@ -1501,21 +1476,21 @@ namespace principal
             {
 
 
-                MessageBox.Show("El Peso Salida no puede ser Mayor Que el Peso de entrada", "Informacion");
+                UiDialog.Show("El Peso Salida no puede ser Mayor Que el Peso de entrada", "Informacion");
                 return;
 
             }
-            if (dtpHoraSalida.Value < dtpHoraentrada.Value&&(!string.IsNullOrWhiteSpace(dtpHoraSalida.Text)&&!string.IsNullOrWhiteSpace(dtpHoraentrada.Text)))
+            if (HoraCapturada(dtpHoraSalida) && HoraCapturada(dtpHoraentrada) && dtpHoraSalida.Value < dtpHoraentrada.Value)
             {
 
 
-                MessageBox.Show("La Hora de Entrada no puede ser mayor a  la Hora de Salida", "Informacion");
+                UiDialog.Show("La Hora de Entrada no puede ser mayor a  la Hora de Salida", "Informacion");
                 return;
 
             }
             if (objRecepcion.id_estatus < 3)
                 objRecepcion.id_estatus = 3;
-            if (!string.IsNullOrWhiteSpace(txtPesoSalida.Text) && !string.IsNullOrWhiteSpace(dtpHoraSalida.Text))
+            if (TienePeso(txtPesoSalida.Text) && HoraCapturada(dtpHoraSalida))
             {
                 if (objRecepcion.id_estatus < 4)
                     objRecepcion.id_estatus = 4;
@@ -1525,11 +1500,33 @@ namespace principal
 
         }
 
+        private static bool TienePeso(string texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto))
+                return false;
+
+            decimal valor;
+            if (!decimal.TryParse(texto, NumberStyles.Number, CultureInfo.CurrentCulture, out valor)
+                && !decimal.TryParse(texto, NumberStyles.Number, CultureInfo.InvariantCulture, out valor))
+                return false;
+
+            return valor > 0;
+        }
+
+        private static bool HoraCapturada(DateTimePicker picker)
+        {
+            if (picker == null)
+                return false;
+            if (picker.CustomFormat == " ")
+                return false;
+            return !string.IsNullOrWhiteSpace(picker.Text);
+        }
+
         private void tcRecepcion_Selecting(object sender, TabControlCancelEventArgs e)
         {
             if (nuevo)
                 return;
-            if (tcRecepcion.SelectedTab == tpAnalisis)
+            if (_tcPasosCaptura != null && _tcPasosCaptura.SelectedTab == tpAnalisis)
             {
                 //tcRecepcion.SelectedIndex = 1;
                 //cargarAnalisis();
@@ -1539,33 +1536,30 @@ namespace principal
 
         private void rbAutomatic_CheckedChanged(object sender, EventArgs e)
         {
-            if (!rbAutomatic.Checked) {
-                btnPesoEntrada.Enabled = false;
-                btnPesoSalida.Enabled = false;
-                return;
-            }
-              
-            txtPesoEntrada.Enabled = false;
-            txtPesoSalida.Enabled = false;
-            dtpHoraentrada.Enabled = false;
-            dtpHoraSalida.Enabled = false;
-            btnPesoEntrada.Enabled = true;
-            btnPesoSalida.Enabled = true;
-           
-           
-
-
-
+            ActualizarModoPesaje();
         }
 
         private void rbManual_CheckedChanged(object sender, EventArgs e)
         {
-            txtPesoEntrada.Enabled = true;
-            txtPesoSalida.Enabled = true;
-            dtpHoraentrada.Enabled = true;
-            dtpHoraSalida.Enabled = true;
+            ActualizarModoPesaje();
+        }
 
-
+        private void ActualizarModoPesaje()
+        {
+            bool automatico = rbAutomatic.Checked;
+            txtPesoEntrada.Enabled = !automatico;
+            txtPesoSalida.Enabled = !automatico;
+            dtpHoraentrada.Enabled = !automatico;
+            dtpHoraSalida.Enabled = !automatico;
+            btnPesoEntrada.Visible = automatico;
+            btnPesoSalida.Visible = automatico;
+            btnPesoEntrada.Enabled = automatico;
+            btnPesoSalida.Enabled = automatico;
+            if (automatico)
+            {
+                btnPesoEntrada.ForeColor = Color.White;
+                btnPesoSalida.ForeColor = Color.White;
+            }
         }
 
         private void txtPesoEntrada_TextChanged(object sender, EventArgs e)
@@ -1630,7 +1624,7 @@ namespace principal
            int id_Item =Convert.ToInt16( dgvAnalisis.Rows[rowIndex].Cells["id_item"].Value);
            if (id_Item == 7)
            {
-               MessageBox.Show("Campo no editable.Sera llenado como resultado de la sumatoria de granos dañados luego de ser guardado el Análisis", "Información", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               UiDialog.Show("Campo no editable.Sera llenado como resultado de la sumatoria de granos dañados luego de ser guardado el Análisis", "Información", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
               
 
            }
@@ -1682,7 +1676,7 @@ namespace principal
                     if ((cell.Value == DBNull.Value || string.IsNullOrWhiteSpace(!Equals(cell.Value,null)?cell.Value.ToString().Trim():string.Empty)) && Convert.ToInt32(id.Value) != 7)
                         {
                             DataGridViewCell cellnombre = row.Cells["nombre"];
-                            MessageBox.Show("Debe llenar el resultado de " + cellnombre.Value, "Informacion");
+                            UiDialog.Show("Debe llenar el resultado de " + cellnombre.Value, "Informacion");
                             return;
 
                         }
@@ -1738,7 +1732,7 @@ namespace principal
 
                     }
                     cargarAnalisis();
-                    MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    UiDialog.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 
                 }
 
@@ -1757,7 +1751,7 @@ namespace principal
         {
             if (!desdeBoton)
             {
-                DialogResult result = MessageBox.Show("Recuerde al eliminar registro no podra ser recuperado, ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
+                DialogResult result = UiDialog.Show("Recuerde al eliminar registro no podra ser recuperado, ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
                 if (result == DialogResult.Yes)
                 {
 
@@ -1775,7 +1769,7 @@ namespace principal
                     }
 
                  objRecepcion.listaAnalisis=new List<analisis>();
-                    MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    UiDialog.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
@@ -1835,17 +1829,12 @@ namespace principal
             else
             {
                 lbAnulado.Text = string.Empty;
-                
-                btnEliminarAnalisis.Enabled = true;
                 btnGuardar.Enabled = true;
-                btnGuardarAnalisis.Enabled = true;
                 btnGuardarRomana.Enabled = true;
                 btnAnular.Enabled = true;
-                rbAnalisis.Enabled = true;
-                rbAnalisisNo.Enabled = true;
-
-
             }
+
+            ConfigurarAnalisisSinUso();
         }
 
         private void btnImprimir_Click(object sender, EventArgs e)
@@ -1929,13 +1918,12 @@ namespace principal
                 if (rowseleccionado.Length == 0) return;
 
                 llenarObjeto(rowseleccionado[0]);
-                AplicarModoRecepcion(false);
                 ActualizarPasosRecepcion();
-                tcRecepcion.SelectedTab = dtpHasta;
+                IrAPasoCapturaDatos();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiDialog.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -2016,7 +2004,7 @@ namespace principal
 
                 if (analisis)
                 {
-                    DialogResult result = MessageBox.Show("Se eliminara el Análisis.Recuerde al eliminar registro no podra ser recuperado, ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
+                    DialogResult result = UiDialog.Show("Se eliminara el Análisis.Recuerde al eliminar registro no podra ser recuperado, ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
                     if (result == DialogResult.Yes)
                     {
 
@@ -2070,7 +2058,7 @@ namespace principal
             catch (Exception ex)
             {
                 spRomana.Close();
-                MessageBox.Show(ex.Message, "Error");
+                UiDialog.Show(ex.Message, "Error");
 
             }
 
@@ -2098,7 +2086,7 @@ namespace principal
             catch (Exception ex)
             {
                 spRomana.Close();
-                MessageBox.Show(ex.Message, "Error");
+                UiDialog.Show(ex.Message, "Error");
 
             }
 
@@ -2196,7 +2184,7 @@ namespace principal
             else
             {
 
-                MessageBox.Show("No existen elementos para realizar exportación.", "Información", MessageBoxButtons.OKCancel,MessageBoxIcon.Exclamation);
+                UiDialog.Show("No existen elementos para realizar exportación.", "Información", MessageBoxButtons.OKCancel,MessageBoxIcon.Exclamation);
             }
         }
 

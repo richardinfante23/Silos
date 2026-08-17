@@ -52,7 +52,7 @@ namespace principal
                     }
                     else
                     {
-                        MessageBox.Show("Datos Incorrectos", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        UiDialog.Show(this, "Datos Incorrectos", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                        
                     }
@@ -63,7 +63,7 @@ namespace principal
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Ha ocurrido un buscando Conductor. Error Contacte al Administrador del Sistema"+ex,"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    UiDialog.Show(this, "Ha ocurrido un error al iniciar sesión. Contacte al administrador del sistema.\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Application.Exit();
                 }
                

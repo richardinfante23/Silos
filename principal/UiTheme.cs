@@ -232,19 +232,32 @@ namespace principal
         {
             if (button == null) return;
             StyleActionButton(button, Accent, Color.White, AccentHover, 0, null);
+            AplicarEstiloCompacto(button, text, width, height);
+            button.ForeColor = Color.White;
+        }
+
+        /// <summary>Botón secundario compacto para campos con Buscar inline.</summary>
+        public static void StyleCompactSecondaryButton(Button button, string text, int width = 88, int height = 30)
+        {
+            if (button == null) return;
+            StyleActionButton(button, Card, TextPrimary, Color.FromArgb(230, 236, 241), 1, null, Border);
+            AplicarEstiloCompacto(button, text, width, height);
+            button.ForeColor = TextPrimary;
+        }
+
+        private static void AplicarEstiloCompacto(Button button, string text, int width, int height)
+        {
             button.Tag = CompactActionTag;
             button.Image = null;
             button.ImageAlign = ContentAlignment.MiddleCenter;
             button.TextAlign = ContentAlignment.MiddleCenter;
             button.TextImageRelation = TextImageRelation.Overlay;
-            // Padding top/bottom 0 y L/R simétrico: FlatStyle.Flat + padding vertical
-            // desigual empuja el texto hacia abajo y lo recorta en el borde inferior.
-            button.Padding = new Padding(8, 0, 8, 0);
+            button.Padding = new Padding(6, 0, 6, 0);
             button.Text = text ?? string.Empty;
-            button.ForeColor = Color.White;
             button.AutoSize = false;
             button.Size = new Size(width, height);
             button.MinimumSize = new Size(width, height);
+            button.MaximumSize = new Size(width, height);
             button.Dock = DockStyle.None;
             button.UseVisualStyleBackColor = false;
         }
