@@ -63,6 +63,7 @@ namespace principal
 
         private void SeccionesForm_Load(object sender, EventArgs e)
         {
+            UiTheme.ApplyForm(this);
             if (!nuevo)
                 btnEliminar.Enabled = true;
         }

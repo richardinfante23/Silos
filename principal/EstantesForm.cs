@@ -18,7 +18,7 @@ namespace principal
         public EstantesForm(bool prmnuevo,int prmidarticulo)
         {
             InitializeComponent();
-       
+            UiTheme.ApplyForm(this);
 
             nuevo = prmnuevo;
             if(!nuevo)

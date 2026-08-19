@@ -20,7 +20,7 @@ namespace principal
 
         private void usuariosForm_Load(object sender, EventArgs e)
         {
-            
+            UiTheme.ApplyCatalogScreen(this);
             cargarUsuarios();
 
         }
@@ -58,7 +58,7 @@ namespace principal
             try
             {
                 nuevoUsuarioForm nuf = new nuevoUsuarioForm();
-                nuf.ShowDialog();
+                nuf.ShowDialog(this);
 
 
                 cargarUsuarios();
@@ -88,7 +88,7 @@ namespace principal
                 
 
             }
-            nuf.ShowDialog();
+            nuf.ShowDialog(this);
             cargarUsuarios();
         }
 

@@ -215,6 +215,11 @@ namespace principal
                 lbNombre.Text = "Cliente Natural";
             }
             btnEliminar.Visible = actualizar;
+
+            // Si se abre desde "Nuevo", el combo `cbLetra` puede quedar sin selección.
+            // Asignamos la primera letra disponible para que no salga vacío.
+            if (cbLetra != null && cbLetra.SelectedItem == null && cbLetra.Items.Count > 0)
+                cbLetra.SelectedIndex = 0;
         }
 
         private void btnGuardar_Click(object sender, EventArgs e)
@@ -230,7 +235,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjErrorOperacion(ex, "guardar el registro");
             }
 
         }
@@ -250,7 +255,7 @@ namespace principal
                         continue;
                     }
                 }
-                MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Base.msjExito("Registro guardado exitosamente.");
 
 
             }
@@ -258,10 +263,9 @@ namespace principal
             {
                 if (id == 0)
                 {
-                    MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador");
+                    Base.msjError("Ha ocurrido un error. Contacte al administrador del sistema.");
                 }
                 pd.actualizar(id, txtNombre.Text, Convert.ToDecimal(txtCedula.Text), cbLetra.SelectedItem.ToString(), Convert.ToInt32(((System.Data.DataRowView)(cbAsociaciones.SelectedItem)).Row.ItemArray[0]), false);
-                //MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -280,7 +284,7 @@ namespace principal
                         continue;
                     }
                 }
-                MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Base.msjExito("Registro guardado exitosamente.");
 
 
             }
@@ -288,10 +292,10 @@ namespace principal
             {
                 if (id == 0)
                 {
-                    MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador");
+                    Base.msjError("Ha ocurrido un error. Contacte al administrador del sistema.");
                 }
                 dd.actualizar(id, txtNombre.Text, Convert.ToDecimal(txtCedula.Text), cbLetra.SelectedItem.ToString(), Convert.ToInt32(((System.Data.DataRowView)(cbAsociaciones.SelectedItem)).Row.ItemArray[0]), false);
-                MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Base.msjExito("Registro guardado exitosamente.");
             }
         }
 
@@ -304,7 +308,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
             cargarAsociaciones();
         }
@@ -328,7 +332,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
         }
 
@@ -339,16 +343,16 @@ namespace principal
                 if (pd.bustramitesxidPorductor(id).Rows.Count > 0 || dd.bustramitesxidPorductor(id).Rows.Count > 0)
                 {
 
-                    MessageBox.Show("Registro no puede ser eliminado ya que se encuentra asociado a Tramites de recepcion o despacho", "Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    Base.msjError("El registro no puede ser eliminado porque se encuentra asociado a trámites de recepción o despacho.");
                     return;
                 }
-                DialogResult result = MessageBox.Show("Recuerde al eliminar registro no podra ser recuperado, ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
+                DialogResult result = Base.msjPreguntaCancel("Al eliminar este registro no podrá recuperarse. ¿Desea continuar con la eliminación?");
                 if (result == DialogResult.Yes)
                 {
                     if (destino) { eliminarDestino(); } else { eliminarProductor(); }
                     
 
-                    MessageBox.Show("Registro Eliminado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Base.msjExito("Registro eliminado exitosamente.");
                     eliminado = true;
 
                     Close();
@@ -356,7 +360,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
 
 

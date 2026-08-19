@@ -16,7 +16,7 @@ namespace principal
         public SeccionForm(List<detalle_articuloBO> prmdt)
         {
             InitializeComponent();
-            //cbseccion.SelectionChangeCommitted += Cbseccion_SelectedValueChanged;
+            UiTheme.ApplyPickerDialog(this, label1, cbseccion);
             cbseccion.KeyPress += cbseccion_KeyPress;
             llenarSeccion(prmdt);
         }

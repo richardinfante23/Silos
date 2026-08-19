@@ -158,6 +158,10 @@
     <Compile Include="DespachoForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="DespachoUi.cs">
+      <DependentUpon>DespachoForm.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="DespachoForm.Designer.cs">
       <DependentUpon>DespachoForm.cs</DependentUpon>
     </Compile>

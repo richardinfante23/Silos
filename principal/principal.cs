@@ -133,6 +133,30 @@ namespace principal
                 btnRecepcion.Enabled = false;
                 btnDespacho.Enabled = false;
             }
+
+            AplicarMenuOperativo();
+        }
+
+        private void AplicarMenuOperativo()
+        {
+            puertoRomanaToolStripMenuItem.Visible = false;
+            parametrosGeneralesToolStripMenuItem.Visible = false;
+            usuariosToolStripMenuItem1.Visible = true;
+            configuracionToolStripMenuItem.Visible = true;
+
+            productoTerminadoToolStripMenuItem.Visible = false;
+            mantenimientToolStripMenuItem.Visible = false;
+            toolStripSeparator9.Visible = false;
+            inventarioToolStripMenuItem1.Visible = false;
+
+            asociacionesToolStripMenuItem.Visible = false;
+            transporteToolStripMenuItem.Visible = false;
+            toolStripSeparator5.Visible = false;
+
+            nuevoToolStripMenuItem1.Text = "Captura";
+            buscarToolStripMenuItem.Text = "Listado";
+            nuevoToolStripMenuItem2.Text = "Captura";
+            buscarToolStripMenuItem1.Text = "Listado";
         }
 
         private void ApplyMainShellTheme()
@@ -217,37 +241,12 @@ namespace principal
 
         private void btnRecepcion_Click(object sender, EventArgs e)
         {
-            Cursor = Cursors.WaitCursor;
-            recepcionForm pf = new recepcionForm();
-            pf.nombre_Usuario = _usuario;
-            pf.id_perfil = _idPerfil;
-            pf.nuevo = false;
-            pf.id_usuario = _idusuario;
-            pf.supervisor = supevisores;
-            pf.MdiParent = this;
-            pf.Activate();
-            //this.splitContainer1.SendToBack();
-            pf.Show();
-            Cursor = Cursors.Default;
-
+            AbrirRecepcion(listado: false);
         }
 
         private void btnDespacho_Click(object sender, EventArgs e)
         {
-            Cursor = Cursors.WaitCursor;
-            DespachoForm pf = new DespachoForm();
-            pf.nuevo = false;
-            pf.id_perfil = _idPerfil;
-            pf.id_usuario = _idusuario;
-            pf.nombre_Usuario = _usuario;
-            pf.supervisor = supevisores;
-
-            pf.MdiParent = this;
-            pf.Activate();
-            //this.splitContainer1.SendToBack();
-            pf.Show();
-            Cursor = Cursors.Default;
-
+            AbrirDespacho(listado: false);
         }
 
         private void btnInventario_Click(object sender, EventArgs e)
@@ -280,70 +279,53 @@ namespace principal
 
         private void nuevoToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            Cursor = Cursors.WaitCursor;
-            recepcionForm pf = new recepcionForm();
-
-            pf.id_perfil = _idPerfil;
-            pf.id_usuario = _idusuario;
-            pf.nombre_Usuario = _usuario;
-            pf.supervisor = supevisores;
-            pf.MdiParent = this;
-            pf.Activate();
-            //this.splitContainer1.SendToBack();
-            pf.Show();
-            Cursor = Cursors.Default;
-
+            AbrirRecepcion(listado: false);
         }
 
         private void buscarToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            AbrirRecepcion(listado: true);
+        }
+
+        private void AbrirRecepcion(bool listado)
+        {
             Cursor = Cursors.WaitCursor;
             recepcionForm pf = new recepcionForm();
-            pf.nuevo = false;
+            pf.nuevo = !listado;
             pf.id_perfil = _idPerfil;
-            pf.nombre_Usuario = _usuario;
             pf.id_usuario = _idusuario;
+            pf.nombre_Usuario = _usuario;
             pf.supervisor = supevisores;
             pf.MdiParent = this;
             pf.Activate();
-            //this.splitContainer1.SendToBack();
             pf.Show();
+            pf.AplicarModoRecepcion(listado);
             Cursor = Cursors.Default;
         }
 
         private void nuevoToolStripMenuItem2_Click(object sender, EventArgs e)
         {
-            Cursor = Cursors.WaitCursor;
-            DespachoForm pf = new DespachoForm();
-            pf.nuevo = true;
-            pf.id_perfil = _idPerfil;
-            pf.id_usuario = _idusuario;
-
-            pf.nombre_Usuario = _usuario;
-            pf.supervisor = supevisores;
-
-            pf.MdiParent = this;
-            pf.Activate();
-            //this.splitContainer1.SendToBack();
-            pf.Show();
-            Cursor = Cursors.Default;
-
+            AbrirDespacho(listado: false);
         }
 
         private void buscarToolStripMenuItem1_Click(object sender, EventArgs e)
         {
+            AbrirDespacho(listado: true);
+        }
+
+        private void AbrirDespacho(bool listado)
+        {
             Cursor = Cursors.WaitCursor;
             DespachoForm pf = new DespachoForm();
-            pf.nuevo = false;
+            pf.nuevo = !listado;
             pf.id_perfil = _idPerfil;
             pf.id_usuario = _idusuario;
-            pf.supervisor = supevisores;
             pf.nombre_Usuario = _usuario;
-
+            pf.supervisor = supevisores;
             pf.MdiParent = this;
             pf.Activate();
-            //this.splitContainer1.SendToBack();
             pf.Show();
+            pf.AplicarModoDespacho(listado);
             Cursor = Cursors.Default;
         }
 
@@ -608,7 +590,7 @@ namespace principal
             catch (Exception e)
             {
 
-                MessageBox.Show("Error " + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(e.Message);
 
             }
             finally
@@ -616,7 +598,7 @@ namespace principal
                 if (File.Exists(batFilePath))
                     File.Delete(batFilePath);
             }
-            MessageBox.Show("Ha culimnado ejecución de Respaldo de Seguridad. Puede ser ubicado en la siguiente dirección" + "\n " + nombreRespaldo, "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Base.msjExito("Ha culminado la ejecución del respaldo de seguridad. Puede ubicarlo en la siguiente dirección:\n" + nombreRespaldo);
         }
 
         private void artiículosToolStripMenuItem_Click(object sender, EventArgs e)
@@ -633,7 +615,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
 
@@ -647,7 +629,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }
@@ -668,7 +650,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }
@@ -681,7 +663,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
 
@@ -702,7 +684,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }
@@ -715,7 +697,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }
@@ -728,7 +710,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }
@@ -741,7 +723,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
 
@@ -764,7 +746,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }
@@ -782,7 +764,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }
@@ -803,7 +785,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }
@@ -822,7 +804,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }
@@ -839,7 +821,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }

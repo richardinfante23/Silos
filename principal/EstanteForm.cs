@@ -15,6 +15,7 @@ namespace principal
         public EstanteForm( List<detalle_articuloBO> dt)
         {
             InitializeComponent();
+            UiTheme.ApplyPickerDialog(this, label1, cbEstante);
             llenarEstante(dt);
             cbEstante.KeyPress += CbEstante_KeyPress;
         }

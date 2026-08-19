@@ -22,6 +22,7 @@ namespace principal
             nuevo = prmNuevo;
             tipo=(entrada ? "Proveedor" : "Usuario");
             InitializeComponent();
+            UiTheme.ApplyForm(this);
         }
 
         private void btnGuardar_Click(object sender, EventArgs e)

@@ -155,6 +155,8 @@ namespace principal
             if (nuevo)
             {
                 rbTipoNatural.Checked = true;
+                rbJuridica.Checked = false;
+                rbTipoNatural_CheckedChanged(rbTipoNatural, EventArgs.Empty);
                 AplicarModoRecepcion(false);
             }
             if (!nuevo)
@@ -539,6 +541,16 @@ namespace principal
                 cbLetras.Enabled = true;
                 return;
             }
+
+            if (!rbTipoNatural.Checked && !rbJuridica.Checked)
+            {
+                UiDialog.Show("Debe seleccionar Persona Natural o Persona Jurídica antes de buscar.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                rbTipoNatural.Checked = true;
+                rbJuridica.Checked = false;
+                rbTipoNatural_CheckedChanged(rbTipoNatural, EventArgs.Empty);
+                return;
+            }
+
             if (!validateRegistrarOrEditar("validarcedula"))
                 return;
 
@@ -738,6 +750,24 @@ namespace principal
             lbEjemploCedulaCondcutor.Text = "Ejem: 12345678";
             cbLetras.DataSource = new DataTable(); 
             cbLetras.DataSource = listaLetras;
+
+            // Por defecto: letra "V" para productor natural.
+            // (Si no existe "V" en la configuración, tomamos la primera letra disponible.)
+            if (listaLetras != null && listaLetras.Count > 0)
+            {
+                int idxV = -1;
+                for (int i = 0; i < listaLetras.Count; i++)
+                {
+                    var l = listaLetras[i];
+                    if (!string.IsNullOrWhiteSpace(l) && string.Equals(l.Trim(), "V", StringComparison.OrdinalIgnoreCase))
+                    {
+                        idxV = i;
+                        break;
+                    }
+                }
+
+                cbLetras.SelectedIndex = idxV >= 0 ? idxV : 0;
+            }
         }
 
 
@@ -752,7 +782,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                UiDialog.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjErrorOperacion(ex, "administrar silos");
             }
             cargarSilos();
 
@@ -777,7 +807,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                UiDialog.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjErrorOperacion(ex, "administrar silos");
             }
             
         }
@@ -849,13 +879,36 @@ namespace principal
                     }
                 }
                 UiDialog.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                llenarGrid();
+                if (objRecepcion.id > 0)
+                {
+                    resultadodt = rd.buscar(
+                        objRecepcion.id,
+                        0,
+                        0,
+                        0,
+                        0,
+                        string.Empty,
+                        0,
+                        0,
+                        DateTimePicker.MinimumDateTime,
+                        DateTimePicker.MinimumDateTime);
+
+                    if (resultadodt != null && resultadodt.Rows.Count > 0)
+                    {
+                        llenarObjeto(resultadodt.Rows[0]);
+                        AplicarModoRecepcion(false);
+                        IrAPasoCapturaDatos();
+                    }
+                }
                 ActualizarPasosRecepcion();
 
             }
             else
             {
-                if ((id_producto_original <= 3 && objRecepcion.id_producto != id_producto_original) )
+                if (objRecepcion.id > 0
+                    && id_producto_original > 0
+                    && id_producto_original <= 3
+                    && objRecepcion.id_producto != id_producto_original)
                 {
                      DialogResult result = UiDialog.Show("Ha cambiado el tipo producto. Se eliminara el analisis guardado ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
                      if (result == DialogResult.Yes)
@@ -883,8 +936,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                throw new Exception("Ha ocurrido un insertando recepcion. Error Contacte al Administrador del Sistema", ex);
-
+                Base.msjErrorOperacion(ex, "guardar la recepción");
             }
                 
         }
@@ -973,7 +1025,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                UiDialog.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjErrorOperacion(ex, "consultar el listado");
             }
         }
 
@@ -1923,7 +1975,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                UiDialog.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjErrorOperacion(ex, "consultar el listado");
             }
         }
 
@@ -2040,7 +2092,8 @@ namespace principal
         {
             try
             {
-                conexionSerial();
+                if (!conexionSerial())
+                    return;
                 string Recibidos = string.Empty;
                 string peso = string.Empty;
                 spRomana.WriteLine("R");
@@ -2058,7 +2111,7 @@ namespace principal
             catch (Exception ex)
             {
                 spRomana.Close();
-                UiDialog.Show(ex.Message, "Error");
+                Base.msjError(ex.Message);
 
             }
 
@@ -2068,7 +2121,8 @@ namespace principal
         {
             try
             {
-                conexionSerial();
+                if (!conexionSerial())
+                    return;
                 string Recibidos = string.Empty;
                 string peso = string.Empty;
 
@@ -2086,7 +2140,7 @@ namespace principal
             catch (Exception ex)
             {
                 spRomana.Close();
-                UiDialog.Show(ex.Message, "Error");
+                Base.msjError(ex.Message);
 
             }
 
@@ -2095,9 +2149,27 @@ namespace principal
 
 
 
-        private void conexionSerial()
+        private bool conexionSerial()
         {
-            spRomana.PortName = ConfigurationManager.AppSettings["PortName"];
+            string puerto = ConfigurationManager.AppSettings["PortName"];
+            if (string.IsNullOrWhiteSpace(puerto))
+                puerto = "COM1";
+
+            bool existe = SerialPort.GetPortNames()
+                .Any(p => string.Equals(p, puerto, StringComparison.OrdinalIgnoreCase));
+            if (!existe)
+            {
+                UiDialog.Show(
+                    "No hay báscula conectada en el puerto " + puerto + ".\n\nUse el modo Manual para ingresar el peso, o conecte la romana y verifique el puerto (PortName) en la configuración.",
+                    "Báscula no disponible",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                if (rbManual != null)
+                    rbManual.Checked = true;
+                return false;
+            }
+
+            spRomana.PortName = puerto;
             spRomana.BaudRate = Convert.ToInt32(ConfigurationManager.AppSettings["BaudRate"]);
             spRomana.DataBits = Convert.ToInt32(ConfigurationManager.AppSettings["DataBits"]);
             spRomana.Parity = Parity.None;
@@ -2105,10 +2177,8 @@ namespace principal
             spRomana.Handshake = Handshake.None;
             spRomana.ReadTimeout = 5000;
             spRomana.WriteTimeout = 6000;
-         
-          //  spRomana.DataReceived += SpRomana_DataReceived;
-
             spRomana.Open();
+            return true;
         }
 
         private void SpRomana_DataReceived(object sender, SerialDataReceivedEventArgs e)

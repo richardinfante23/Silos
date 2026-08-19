@@ -39,15 +39,19 @@ namespace principal
         bool analisis = false;
         DataTable silosDT = new DataTable();
         bool desdeBoton = false;
+        bool _omitirAdvertenciaInventario = false;
+        readonly historicoData _historicoData = new historicoData();
         public DespachoForm()
         {
             InitializeComponent();
+            AplicarUiDespachoModerna();
             Thread.CurrentThread.CurrentCulture = new CultureInfo("es-VE");
             Thread.CurrentThread.CurrentUICulture = System.Threading.Thread.CurrentThread.CurrentCulture;
 
             cargarPaso();
             cargarProducto();
             cargarSilos();
+            SincronizarCombosFiltroListado();
 
 
             dtpHoraentrada.Format = DateTimePickerFormat.Custom;
@@ -55,6 +59,7 @@ namespace principal
 
             dtpHoraSalida.Format = DateTimePickerFormat.Custom;
             dtpHoraSalida.CustomFormat = " ";
+            formatoFecha();
             
         }
 
@@ -100,9 +105,7 @@ namespace principal
                 if (analisisDT.Rows.Count > 0)
                 {
                     dgvAnalisis.DataSource = analisisDT;
-
-                    dgvAnalisis.Columns["id"].Visible = false;
-                    dgvAnalisis.Columns["id_item"].Visible = false;
+                    ConfigurarColumnasAnalisis();
                     dgvAnalisis.Columns["nombre"].ReadOnly = true;
                     dgvAnalisis.Columns["menor"].ReadOnly = true;
                     dgvAnalisis.Columns["mayor"].ReadOnly = true;
@@ -144,33 +147,29 @@ namespace principal
 
         private void DespachoForm_Load(object sender, EventArgs e)
         {
+            if (this.MdiParent != null)
+                this.WindowState = FormWindowState.Maximized;
 
-
-            tcRecepcion.Controls.Remove(tpAnalisis);
-            tcRecepcion.Controls.Remove(tpRomana);
+            ActualizarPasosDespacho();
             cbProducto.SelectedItem = null;
             if (nuevo)
             {
                 rbTipoNatural.Checked = true;
-
+                formatoFecha();
+                AplicarModoDespacho(false);
             }
             if (!nuevo)
             {
-                txtNroTcicket.ReadOnly = false;
-                btnGuardar.Text = "Buscar";
                 cbEstatus.Enabled = true;
                 dtpFecha.Format = DateTimePickerFormat.Custom;
                 dtpFecha.CustomFormat = " ";
                 cbEstatus.SelectedItem = null;
-                
                 cbSilos.SelectedItem = null;
                 cbEstatus.Text = string.Empty;
-
                 cbSilos.Text = string.Empty;
                 rbtFechaHasta.Visible = true;
-
+                AplicarModoDespacho(true);
             }
-
         }
 
         void cargarPaso()
@@ -238,6 +237,7 @@ namespace principal
         {
             try
             {
+                _omitirAdvertenciaInventario = true;
                 silosData cd = new silosData();
                  silosDT = cd.buscar();
                 if (silosDT.Rows.Count > 0)
@@ -254,6 +254,10 @@ namespace principal
             {
                 throw new Exception("Ha ocurrido un buscando Conductor. Error Contacte al Administrador del Sistema", ex);
 
+            }
+            finally
+            {
+                _omitirAdvertenciaInventario = false;
             }
 
 
@@ -437,6 +441,17 @@ namespace principal
                     dtpFechaHasta.CustomFormat = " ";
                 }
             }
+            else
+            {
+                if (((Control)sender).Name == "dtpHoraentrada")
+                    formatoHoraentrada();
+                if (((Control)sender).Name == "dtpHoraSalida")
+                    formatoHoraSalida();
+                if (((Control)sender).Name == "dtpFecha")
+                    formatoFecha();
+                if (((Control)sender).Name == "dtpFechaHasta")
+                    formatoFechaHasta();
+            }
            
             #endregion
         }
@@ -569,6 +584,7 @@ namespace principal
                         txtNombreProductor.Enabled = false;
                         cbLetras.Enabled = false;
                         btnBuscarProductor.Text = "Cambiar";
+                    EstilarBotonCampo(btnBuscarProductor, "Cambiar");
                         objRecepcion.id_destino = cf.id;
                     }
                 }
@@ -596,6 +612,7 @@ namespace principal
                         txtDIProductor.Enabled = false;
                         cbLetras.Enabled = false;
                         btnBuscarProductor.Text = "Cambiar";
+                    EstilarBotonCampo(btnBuscarProductor, "Cambiar");
                     }
 
                 }
@@ -652,6 +669,7 @@ namespace principal
                         cbLetras.SelectedItem = cf.cbLetra.SelectedItem;
                         cbLetras.Enabled = false;
                         btnBuscarProductor.Text = "Cambiar";
+                    EstilarBotonCampo(btnBuscarProductor, "Cambiar");
                     }
                 }
                 else
@@ -678,6 +696,7 @@ namespace principal
                         txtDIProductor.Enabled = false;
                         cbLetras.Enabled = false;
                         btnBuscarProductor.Text = "Cambiar";
+                    EstilarBotonCampo(btnBuscarProductor, "Cambiar");
                     }
 
                 }
@@ -720,7 +739,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
             cargarSilos();
 
@@ -745,7 +764,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
 
         }
@@ -754,46 +773,8 @@ namespace principal
         {
             try
             {
-                if (btnGuardar.Text == "Buscar")
-                {
-                    int producto = 0;
-                    int status = 0;
-                    int silos = 0;
-                    if (!string.IsNullOrWhiteSpace(cbEstatus.Text))
-                    {
-                        status = objRecepcion.id_estatus;
-
-                    }
-                    if (!string.IsNullOrWhiteSpace(cbProducto.Text))
-                    {
-                        producto = objRecepcion.id_producto;
-
-                    }
-                    if (!string.IsNullOrWhiteSpace(cbSilos.Text))
-                    {
-                        silos = objRecepcion.id_silos;
-
-                    }
-
-                    if (dtpFecha.Value > dtpFechaHasta.Value && !string.IsNullOrWhiteSpace(dtpFechaHasta.Text))
-                    {
-                        MessageBox.Show("La Fecha debe ser menor a la fecha hasta.", "Error");
-                        return;
-                    }
-                    resultadodt = dd.buscar(string.IsNullOrWhiteSpace(txtNroTcicket.Text) ? 0 : Convert.ToInt32(txtNroTcicket.Text), producto, objRecepcion.id_conductor,
-                       objRecepcion.id_destino, objRecepcion.id_destino_natural, txtPlaca.Text, silos, status, string.IsNullOrWhiteSpace(dtpFecha.Text) ? DateTimePicker.MinimumDateTime : dtpFecha.Value.Date, string.IsNullOrWhiteSpace(dtpFechaHasta.Text) ? DateTimePicker.MinimumDateTime : dtpFechaHasta.Value.Date);
-                    if (resultadodt.Rows.Count == 0)
-                    {
-                        
-                        MessageBox.Show("No se encontraron resultados", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                        return;
-                    }
-
-                    llenarGrid();
-                    btnExportar.Enabled = true;
+                if (_modoListado)
                     return;
-
-                }
 
                 if (objRecepcion.id_conductor == 0)
                 {
@@ -836,6 +817,8 @@ namespace principal
                     objRecepcion.hora_salida = dtpHoraSalida.Value;
                 }
 
+                if (nuevo && !ValidarInventarioDespacho())
+                    return;
 
                 if (nuevo)
                 {
@@ -844,15 +827,16 @@ namespace principal
 
                     resultadodt = dd.insertar(objRecepcion.nro_placa, objRecepcion.id_conductor, objRecepcion.fecha, objRecepcion.nro_guia, objRecepcion.peso_guia, objRecepcion.id_producto, objRecepcion.id_destino,
                         objRecepcion.observaciones, objRecepcion.id_estatus, objRecepcion.peso_bruto, objRecepcion.peso_tara, objRecepcion.id_silos, objRecepcion.hora_entrada, objRecepcion.hora_salida, objRecepcion.id_destino_natural, rbAnalisis.Checked);
-                    MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Base.msjExito("Registro guardado exitosamente.");
                     llenarGrid();
+                    ActualizarPasosDespacho();
 
                 }
                 else
                 {
                     if ((id_producto_original <= 3 && objRecepcion.id_producto != id_producto_original))
                     {
-                        DialogResult result = MessageBox.Show("Ha cambiado el tipo producto. Se eliminara el analisis guardado ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
+                        DialogResult result = Base.msjPreguntaCancel("Ha cambiado el tipo de producto. Se eliminará el análisis guardado. ¿Desea continuar?");
                         if (result == DialogResult.Yes)
                         {
                             btnEliminarAnalisis_Click(sender, e);
@@ -866,8 +850,9 @@ namespace principal
                     }
                     resultadodt = dd.actualizar(objRecepcion.id, objRecepcion.nro_placa, objRecepcion.id_conductor, objRecepcion.fecha, objRecepcion.nro_guia, objRecepcion.peso_guia, objRecepcion.id_producto, objRecepcion.id_destino,
                        objRecepcion.observaciones, objRecepcion.id_estatus, objRecepcion.peso_bruto, objRecepcion.peso_tara, objRecepcion.id_silos, objRecepcion.hora_entrada, objRecepcion.hora_salida,objRecepcion.id_destino_natural,rbAnalisis.Checked);
-                    MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Base.msjExito("Registro guardado exitosamente.");
                     llenarGrid();
+                    ActualizarPasosDespacho();
                     resultadodt.Dispose();
 
 
@@ -877,52 +862,242 @@ namespace principal
             }
             catch (Exception ex)
             {
-                throw new Exception("Ha ocurrido un insertando recepcion. Error Contacte al Administrador del Sistema", ex);
-
+                Base.msjErrorOperacion(ex, "guardar el despacho");
             }
 
         }
 
-        private void llenarGrid()
+        private void EjecutarBusquedaListado()
         {
-            dgvRecepciones.DataSource = new DataTable();
-            dgvRecepciones.DataSource = resultadodt;
-            decimal totalNeto = decimal.Zero;
-            decimal totalAcondiconado = decimal.Zero;
-            foreach (DataGridViewRow registro in dgvRecepciones.Rows)
+            try
             {
-                totalAcondiconado += Convert.ToDecimal(registro.Cells["peso_acondicionado"].Value);
-                totalNeto += Convert.ToDecimal(registro.Cells["peso_neto"].Value);
+                if (_txtFiltroTicket == null)
+                    return;
+
+                int nroTicket = 0;
+                if (!string.IsNullOrWhiteSpace(_txtFiltroTicket.Text))
+                {
+                    if (!int.TryParse(_txtFiltroTicket.Text.Trim(), out nroTicket))
+                    {
+                        UiDialog.Show("El nro de ticket debe ser numérico.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        _txtFiltroTicket.Focus();
+                        return;
+                    }
+                }
+
+                DateTime fechaDesde = string.IsNullOrWhiteSpace(_dtpFiltroDesde.Text)
+                    ? DateTimePicker.MinimumDateTime
+                    : _dtpFiltroDesde.Value.Date;
+                DateTime fechaHasta = string.IsNullOrWhiteSpace(_dtpFiltroHasta.Text)
+                    ? DateTimePicker.MinimumDateTime
+                    : _dtpFiltroHasta.Value.Date;
+
+                if (fechaDesde != DateTimePicker.MinimumDateTime
+                    && fechaHasta != DateTimePicker.MinimumDateTime
+                    && fechaDesde > fechaHasta)
+                {
+                    UiDialog.Show("La fecha desde debe ser menor o igual a la fecha hasta.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                int idConductor = ResolverIdConductorFiltro(_txtFiltroConductor.Text);
+                if (!string.IsNullOrWhiteSpace(_txtFiltroConductor.Text) && idConductor == 0)
+                {
+                    UiDialog.Show("No se encontró conductor con esa cédula.", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    _txtFiltroConductor.Focus();
+                    return;
+                }
+
+                int idDestino = 0;
+                int idDestinoNatural = 0;
+                if (!string.IsNullOrWhiteSpace(_txtFiltroCliente.Text))
+                {
+                    if (!ResolverIdsDestinoFiltro(_txtFiltroCliente.Text, out idDestinoNatural, out idDestino))
+                    {
+                        UiDialog.Show("No se encontró cliente/destino con ese documento.", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        _txtFiltroCliente.Focus();
+                        return;
+                    }
+                }
+
+                int idProducto = 0;
+                if (_cbFiltroProducto != null && !string.IsNullOrWhiteSpace(_cbFiltroProducto.Text) && _cbFiltroProducto.SelectedItem is DataRowView drvProd)
+                    idProducto = Convert.ToInt32(drvProd.Row["id"]);
+
+                int idEstatus = 0;
+                if (_cbFiltroEstatus != null && !string.IsNullOrWhiteSpace(_cbFiltroEstatus.Text) && _cbFiltroEstatus.SelectedItem is DataRowView drvEst)
+                    idEstatus = Convert.ToInt32(drvEst.Row["id"]);
+
+                resultadodt = dd.buscar(
+                    nroTicket,
+                    idProducto,
+                    idConductor,
+                    idDestino,
+                    idDestinoNatural,
+                    string.Empty,
+                    0,
+                    idEstatus,
+                    fechaDesde,
+                    fechaHasta);
+
+                if (resultadodt == null || resultadodt.Rows.Count == 0)
+                {
+                    UiDialog.Show("No se encontraron resultados", "Fallido", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    return;
+                }
+
+                btnExportar.Enabled = true;
+                llenarGrid();
+            }
+            catch (Exception ex)
+            {
+                Base.msjErrorOperacion(ex, "consultar el listado");
+            }
+        }
+
+        private int ResolverIdConductorFiltro(string cedulaTexto)
+        {
+            if (string.IsNullOrWhiteSpace(cedulaTexto))
+                return 0;
+
+            decimal cedula;
+            if (!decimal.TryParse(cedulaTexto.Trim(), out cedula))
+                return 0;
+
+            conductoresData cd = new conductoresData();
+            DataTable dt = cd.buscar(cedula);
+            try
+            {
+                if (dt.Rows.Count == 0)
+                    return 0;
+                return Convert.ToInt32(dt.Rows[0]["id"]);
+            }
+            finally
+            {
+                dt.Dispose();
+            }
+        }
+
+        private bool ResolverIdsDestinoFiltro(string documentoTexto, out int idNatural, out int idJuridico)
+        {
+            idNatural = 0;
+            idJuridico = 0;
+            if (string.IsNullOrWhiteSpace(documentoTexto))
+                return true;
+
+            decimal documento;
+            if (!decimal.TryParse(documentoTexto.Trim(), out documento))
+                return false;
+
+            string letra = _cbFiltroLetraCliente != null && _cbFiltroLetraCliente.SelectedItem != null
+                ? _cbFiltroLetraCliente.SelectedItem.ToString().Trim()
+                : "V";
+
+            destinoData dest = new destinoData();
+
+            DataTable natural = dest.buscar(letra, documento);
+            try
+            {
+                if (natural.Rows.Count > 0)
+                {
+                    idNatural = Convert.ToInt32(natural.Rows[0]["id"]);
+                    return true;
+                }
+            }
+            finally
+            {
+                natural.Dispose();
             }
 
-            lbTotal.Visible = true;
-           
-            lbTotal.Text = " Peso N.= " + totalNeto + " Peso Acond.= " + totalAcondiconado;
-            //dgvRecepciones.Columns["Nro Ticket"].Visible = false;
-            dgvRecepciones.Columns["cedulacliente"].Visible = false;
-            dgvRecepciones.Columns["id_estatus"].Visible = false;
-            dgvRecepciones.Columns["id_producto"].Visible = false;
-            dgvRecepciones.Columns["nro_guia"].Visible = false;
-            dgvRecepciones.Columns["peso_guia"].Visible = false;
-            dgvRecepciones.Columns["nombreconductor"].Visible = false;
-            dgvRecepciones.Columns["rif"].Visible = false;
-            dgvRecepciones.Columns["id_silos"].Visible = false;
-            dgvRecepciones.Columns["hora_entrada"].Visible = false;
-            dgvRecepciones.Columns["hora_salida"].Visible = false;
-            dgvRecepciones.Columns["cedulaconductor"].Visible = false;
-            dgvRecepciones.Columns["nombre_asociacion"].Visible = false;
-            dgvRecepciones.Columns["nombre_transporte"].Visible = false;
-            dgvRecepciones.Columns["letranatural"].Visible = false;
-            dgvRecepciones.Columns["letrajuridica"].Visible = false;
-            dgvRecepciones.Columns["id_conductor"].Visible = false;
-            dgvRecepciones.Columns["id_destino"].Visible = false;
-            dgvRecepciones.Columns["id_destino_natural"].Visible = false;
-            dgvRecepciones.Columns["observaciones"].Visible = false;
-            dgvRecepciones.Columns["resumen"].Visible = false;
-            //dgvRecepciones.Columns["id"].Visible = false;
-            llenarObjeto(resultadodt.Rows[0]);
-            resultadodt.Dispose();
-            return;
+            DataTable juridico = dest.buscarPersonaJuridica(letra, documento);
+            try
+            {
+                if (juridico.Rows.Count > 0)
+                {
+                    idJuridico = Convert.ToInt32(juridico.Rows[0]["id"]);
+                    return true;
+                }
+            }
+            finally
+            {
+                juridico.Dispose();
+            }
+
+            var letrasProbar = new List<string>();
+            if (!string.IsNullOrWhiteSpace(letrasNaturales))
+                letrasProbar.AddRange(letrasNaturales.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+            if (!string.IsNullOrWhiteSpace(letrasJuridicas))
+                letrasProbar.AddRange(letrasJuridicas.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+
+            foreach (string l in letrasProbar)
+            {
+                string t = l.Trim();
+                if (string.Equals(t, letra, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                DataTable n2 = dest.buscar(t, documento);
+                try
+                {
+                    if (n2.Rows.Count > 0)
+                    {
+                        idNatural = Convert.ToInt32(n2.Rows[0]["id"]);
+                        return true;
+                    }
+                }
+                finally
+                {
+                    n2.Dispose();
+                }
+
+                DataTable j2 = dest.buscarPersonaJuridica(t, documento);
+                try
+                {
+                    if (j2.Rows.Count > 0)
+                    {
+                        idJuridico = Convert.ToInt32(j2.Rows[0]["id"]);
+                        return true;
+                    }
+                }
+                finally
+                {
+                    j2.Dispose();
+                }
+            }
+
+            return false;
+        }
+
+        private void llenarGrid()
+        {
+            if (_filtroRecepciones == null)
+                _filtroRecepciones = new GridHeaderFilter(dgvRecepciones);
+
+            DataTable vista = resultadodt != null ? resultadodt.Copy() : new DataTable();
+            _filtroRecepciones.Bind(vista);
+            ConfigurarColumnasDespachoVisibles();
+            ActualizarEspacioGrilla();
+
+            decimal totalNeto = decimal.Zero;
+            decimal totalAcondicionado = decimal.Zero;
+            int cantidad = 0;
+            foreach (DataGridViewRow registro in dgvRecepciones.Rows)
+            {
+                if (registro.IsNewRow) continue;
+                cantidad++;
+                if (registro.Cells["peso_acondicionado"].Value != null && registro.Cells["peso_acondicionado"].Value != DBNull.Value)
+                    totalAcondicionado += Convert.ToDecimal(registro.Cells["peso_acondicionado"].Value);
+                if (registro.Cells["peso_neto"].Value != null && registro.Cells["peso_neto"].Value != DBNull.Value)
+                    totalNeto += Convert.ToDecimal(registro.Cells["peso_neto"].Value);
+            }
+
+            ActualizarTotalesListado(totalNeto, totalAcondicionado, cantidad);
+            AplicarModoDespacho(true);
+
+            if (resultadodt != null && resultadodt.Rows.Count == 1)
+            {
+                llenarObjeto(resultadodt.Rows[0]);
+                IrAPasoCapturaDatos();
+            }
         }
 
 
@@ -1000,33 +1175,15 @@ namespace principal
             {
 
                 btnGuardar.Text = "Guardar";
-                if (tcRecepcion.Controls.Count == 1)
-                {
-                    //if (supervisor || id_perfil == 2)
-                    //{
-                        tcRecepcion.Controls.Add(tpRomana);
-                        rbManual.Visible = supervisor;
-                    //}
+                IrAPasoCapturaDatos();
+                ActualizarPasosDespacho();
+                if (objRecepcion.id_estatus >= 2)
+                    rbManual.Visible = supervisor;
 
-                } if (!tcRecepcion.Contains(tpAnalisis) && objRecepcion.id_estatus >= 2)
-                {
-                    //if (supervisor || id_perfil == 3)
-                    //{
-                        tcRecepcion.Controls.Add(tpAnalisis);
-                    //}
-                    
-                }
-
-
-                if (tcRecepcion.Controls.Count == 3 && objRecepcion.id_estatus == 1)
-                {
-
-                    tcRecepcion.Controls.Remove(tpAnalisis);
-                }
-                
                 btnAnular.Visible = true;
-                txtNroTcicket.ReadOnly = true;
                 txtNroTcicket.Text = objRecepcion.id.ToString();
+                ConfigurarTicketAutogenerado();
+                _omitirAdvertenciaInventario = true;
                 cbProducto.SelectedValue = prmRecepcion.id_producto;
                 if (objRecepcion.id_destino_natural > 0)
                 {
@@ -1046,6 +1203,7 @@ namespace principal
                     txtDIProductor.Enabled = false;
                     txtNombreProductor.Enabled = false;
                     btnBuscarProductor.Text = "Cambiar";
+                    EstilarBotonCampo(btnBuscarProductor, "Cambiar");
                 }
                 if (objRecepcion.id_destino > 0)
                 {
@@ -1065,6 +1223,7 @@ namespace principal
                     txtDIProductor.Enabled = false;
                     txtNombreProductor.Enabled = false;
                     btnBuscarProductor.Text = "Cambiar";
+                    EstilarBotonCampo(btnBuscarProductor, "Cambiar");
 
                 }
                 if (objRecepcion.id_destino_natural == 0 && objRecepcion.id_destino == 0)
@@ -1075,6 +1234,7 @@ namespace principal
                     txtDIProductor.Enabled = true;
                     txtNombreProductor.Enabled = true;
                     btnBuscarProductor.Text = "Buscar";
+                    EstilarBotonCampo(btnBuscarProductor, "Buscar");
                 }
                 if (objRecepcion.id_conductor > 0)
                 {
@@ -1083,6 +1243,7 @@ namespace principal
                     txtConductor.Enabled = false;
                     txtNombreConductor.Enabled = false;
                     btnBuscarConductor.Text = "Cambiar";
+                    EstilarBotonCampo(btnBuscarConductor, "Cambiar");
                 }
                 this.rbAnalisis.CheckedChanged -= new System.EventHandler(this.rbResumen_CheckedChanged);
                 if (objRecepcion.resumen)
@@ -1090,6 +1251,8 @@ namespace principal
                 else
                     rbAnalisisNo.Checked = true;
                 this.rbAnalisis.CheckedChanged += new System.EventHandler(this.rbResumen_CheckedChanged);
+                dgvAnalisis.Enabled = rbAnalisis.Checked;
+                btnGuardarAnalisis.Enabled = rbAnalisis.Checked;
                 dtpFecha.Value = objRecepcion.fecha;
                 txtPlaca.Text = objRecepcion.nro_placa;
                 txtNroguia.Text = objRecepcion.nro_guia;
@@ -1158,6 +1321,7 @@ namespace principal
                 cbEstatus.Enabled = false;
                 dtpFechaHasta.Visible = false;
                 rbtFechaHasta.Visible = false;
+                ActualizarPasosDespacho();
 
 
             }
@@ -1165,6 +1329,10 @@ namespace principal
             {
                 throw new Exception("Ha ocurrido un llenando campos recepcion. Error Contacte al Administrador del Sistema", ex);
 
+            }
+            finally
+            {
+                _omitirAdvertenciaInventario = false;
             }
 
         }
@@ -1185,110 +1353,96 @@ namespace principal
 
         private void rbAutomatic_CheckedChanged(object sender, EventArgs e)
         {
-            if (!rbAutomatic.Checked)
+            ActualizarModoPesaje();
+        }
+
+        private void ActualizarModoPesaje()
+        {
+            bool automatico = rbAutomatic.Checked;
+            txtPesoEntrada.Enabled = !automatico;
+            txtPesoSalida.Enabled = !automatico;
+            dtpHoraentrada.Enabled = !automatico;
+            dtpHoraSalida.Enabled = !automatico;
+            btnPesoEntrada.Visible = automatico;
+            btnPesoSalida.Visible = automatico;
+            btnPesoEntrada.Enabled = automatico;
+            btnPesoSalida.Enabled = automatico;
+            if (automatico)
             {
-                btnPesoEntrada.Enabled = false;
-                btnPesoSalida.Enabled = false;
-          
-                return;
+                btnPesoEntrada.ForeColor = Color.White;
+                btnPesoSalida.ForeColor = Color.White;
             }
-               
-            txtPesoEntrada.Enabled = false;
-            txtPesoSalida.Enabled = false;
-            dtpHoraentrada.Enabled = false;
-            dtpHoraSalida.Enabled = false;
-            btnPesoEntrada.Enabled = true;
-            btnPesoSalida.Enabled = true;
-          
-
-
-
-
         }
         private void btnGuardarRomana_Click(object sender, EventArgs e)
         {
-
-            if (string.IsNullOrWhiteSpace(txtPesoEntrada.Text))
+            if (string.IsNullOrWhiteSpace(txtPesoEntrada.Text) || !TienePeso(txtPesoEntrada.Text))
             {
-
-
-                MessageBox.Show("El Campo Peso Entrada es obligatorio", "Informacion");
+                Base.msjAdvertencia("El campo peso de entrada es obligatorio.");
                 return;
-
-            }
-            else
-            {
-
-
-                if (objRecepcion.id_estatus < 3 && (!string.IsNullOrWhiteSpace(txtPesoSalida.Text)&& txtPesoSalida.Text!="0"))
-                {
-
-                    txtPesoSalida.Text = "0";
-                    dtpHoraSalida.CustomFormat = " ";
-                    MessageBox.Show("De sebe guardar Analisis antes de guardar pesada de salida", "Informacion");
-                    return;
-
-                }
-                
-                if (string.IsNullOrWhiteSpace(dtpHoraentrada.Text))
-                {
-
-
-                    MessageBox.Show("El Campo Hora Entrada es obligatorio", "Informacion");
-                    return;
-
-                }
-
-
             }
 
-
-            if ((txtPesoSalida.Text != "0") && string.IsNullOrWhiteSpace(dtpHoraSalida.Text))
+            if (!HoraCapturada(dtpHoraentrada))
             {
-
-
-                MessageBox.Show("El Campo Hora Salida es obligatorio", "Informacion");
+                Base.msjAdvertencia("El campo hora de entrada es obligatorio.");
                 return;
-
             }
-           
-            if (Convert.ToDecimal(string.IsNullOrWhiteSpace(txtPesoEntrada.Text) ? "0" : txtPesoEntrada.Text) > Convert.ToDecimal(string.IsNullOrWhiteSpace(txtPesoSalida.Text) ? "0" : txtPesoSalida.Text) && Convert.ToDecimal(string.IsNullOrWhiteSpace(txtPesoSalida.Text) ? "0" : txtPesoSalida.Text)>0)
+
+            if (TienePeso(txtPesoSalida.Text) && !HoraCapturada(dtpHoraSalida))
             {
-
-
-                MessageBox.Show("El Peso Salida no puede ser Menor Que el Peso de entrada", "Informacion");
+                Base.msjAdvertencia("El campo hora de salida es obligatorio.");
                 return;
-
             }
-            if (dtpHoraSalida.Value < dtpHoraentrada.Value && (!string.IsNullOrWhiteSpace(dtpHoraSalida.Text) && !string.IsNullOrWhiteSpace(dtpHoraentrada.Text)))
+
+            decimal pesoEntrada = Convert.ToDecimal(string.IsNullOrWhiteSpace(txtPesoEntrada.Text) ? "0" : txtPesoEntrada.Text);
+            decimal pesoSalida = Convert.ToDecimal(string.IsNullOrWhiteSpace(txtPesoSalida.Text) ? "0" : txtPesoSalida.Text);
+            if (pesoSalida > 0 && pesoEntrada > pesoSalida)
             {
-
-
-                MessageBox.Show("La Hora de Entrada no puede ser mayor a  la Hora de Salida", "Informacion");
+                Base.msjAdvertencia("El peso de salida no puede ser menor que el peso de entrada.");
                 return;
-
             }
+
+            if (HoraCapturada(dtpHoraSalida) && HoraCapturada(dtpHoraentrada) && dtpHoraSalida.Value < dtpHoraentrada.Value)
+            {
+                Base.msjAdvertencia("La hora de entrada no puede ser mayor que la hora de salida.");
+                return;
+            }
+
             if (objRecepcion.id_estatus <= 2)
-                objRecepcion.id_estatus = 2;//paso de pesada entrada
-            if (!string.IsNullOrWhiteSpace(txtPesoSalida.Text) && !string.IsNullOrWhiteSpace(dtpHoraSalida.Text))
+                objRecepcion.id_estatus = 2;
+            if (TienePeso(txtPesoSalida.Text) && HoraCapturada(dtpHoraSalida))
             {
                 if (objRecepcion.id_estatus <= 4)
                     objRecepcion.id_estatus = 4;
             }
 
             btnGuardar_Click(sender, e);
+        }
 
+        private static bool TienePeso(string texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto))
+                return false;
 
+            decimal valor;
+            if (!decimal.TryParse(texto, NumberStyles.Number, CultureInfo.CurrentCulture, out valor)
+                && !decimal.TryParse(texto, NumberStyles.Number, CultureInfo.InvariantCulture, out valor))
+                return false;
+
+            return valor > 0;
+        }
+
+        private static bool HoraCapturada(DateTimePicker picker)
+        {
+            if (picker == null)
+                return false;
+            if (picker.CustomFormat == " ")
+                return false;
+            return !string.IsNullOrWhiteSpace(picker.Text);
         }
 
         private void rbManual_CheckedChanged(object sender, EventArgs e)
         {
-            txtPesoEntrada.Enabled = true;
-            txtPesoSalida.Enabled = true;
-            dtpHoraentrada.Enabled = true;
-            dtpHoraSalida.Enabled = true;
-
-
+            ActualizarModoPesaje();
         }
 
         private void txtPesoEntrada_TextChanged(object sender, EventArgs e)
@@ -1328,7 +1482,7 @@ namespace principal
            int id_Item =Convert.ToInt16( dgvAnalisis.Rows[rowIndex].Cells["id_item"].Value);
            if (id_Item == 7)
            {
-               MessageBox.Show("Campo no editable.Sera llenado como resultado de la sumatoria de granos dañados luego de ser guardado el Análisis", "Información", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               Base.msjInformacion("Campo no editable. Será llenado como resultado de la sumatoria de granos dañados luego de ser guardado el análisis.");
               
 
            }
@@ -1359,8 +1513,7 @@ namespace principal
                 return;
 
             objRecepcion.id_producto = Convert.ToInt32(((System.Data.DataRowView)(cbProducto.SelectedItem)).Row.ItemArray[0]);
-
-
+            AdvertirInventarioSiloSeleccionado();
         }
 
         private void btnCancelarAnalisis_Click(object sender, EventArgs e)
@@ -1382,7 +1535,7 @@ namespace principal
                     if ((cell.Value == DBNull.Value || string.IsNullOrWhiteSpace(!Equals(cell.Value, null) ? cell.Value.ToString().Trim() : string.Empty)) && Convert.ToInt32(id.Value) != 7)
                     {
                         DataGridViewCell cellnombre = row.Cells["nombre"];
-                        MessageBox.Show("Debe llenar el resultado de " + cellnombre.Value, "Informacion");
+                        Base.msjAdvertencia("Debe llenar el resultado de " + cellnombre.Value + ".");
                         return;
 
                     }
@@ -1441,7 +1594,7 @@ namespace principal
 
                     }
                     cargarAnalisis();
-                    MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Base.msjExito("Registro guardado exitosamente.");
 
                 }
 
@@ -1483,7 +1636,7 @@ namespace principal
         {
             if (!desdeBoton)
             {
-                DialogResult result = MessageBox.Show("Recuerde al eliminar registro no podra ser recuperado, ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
+                DialogResult result = Base.msjPreguntaCancel("Al eliminar este registro no podrá recuperarse. ¿Desea continuar con la eliminación?");
                 if (result == DialogResult.Yes)
                 {
 
@@ -1501,7 +1654,7 @@ namespace principal
                     }
 
                     objRecepcion.listaAnalisis = new List<analisis>();
-                    MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Base.msjExito("Registro guardado exitosamente.");
                 }
                 else
                 {
@@ -1566,11 +1719,9 @@ namespace principal
                 btnGuardarAnalisis.Enabled = true;
                 btnGuardarRomana.Enabled = true;
                 btnAnular.Enabled = true;
-                rbAnalisis.Enabled = true;
-                rbAnalisisNo.Enabled = true;
-
-
             }
+
+            ConfigurarAnalisisSinUso();
         }
 
         private void btnImprimir_Click(object sender, EventArgs e)
@@ -1629,12 +1780,29 @@ namespace principal
 
         private void dgvRecepciones_CellContentDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
+            if (e.RowIndex < 0 || dgvRecepciones.SelectedRows.Count == 0) return;
 
-            var seleccionado = Convert.ToInt32(dgvRecepciones.SelectedRows[0].Cells[0].Value);
+            try
+            {
+                object ticketVal = dgvRecepciones.Columns.Contains("Nro_Ticket")
+                    ? dgvRecepciones.SelectedRows[0].Cells["Nro_Ticket"].Value
+                    : dgvRecepciones.SelectedRows[0].Cells[0].Value;
+                int seleccionado = Convert.ToInt32(ticketVal);
 
-            DataRow[] rowseleccionado = resultadodt.Select("Nro_Ticket=" + seleccionado);
-            llenarObjeto(rowseleccionado[0]);
+                if (resultadodt == null || resultadodt.Rows.Count == 0)
+                    return;
 
+                DataRow[] rowseleccionado = resultadodt.Select("Nro_Ticket=" + seleccionado);
+                if (rowseleccionado.Length == 0) return;
+
+                llenarObjeto(rowseleccionado[0]);
+                ActualizarPasosDespacho();
+                IrAPasoCapturaDatos();
+            }
+            catch (Exception ex)
+            {
+                Base.msjErrorOperacion(ex, "consultar el listado");
+            }
         }
 
         private void cbSilos_SelectedValueChanged(object sender, EventArgs e)
@@ -1642,6 +1810,69 @@ namespace principal
             if (Equals(cbSilos.SelectedItem, null))
                 return;
             objRecepcion.id_silos = Convert.ToInt32(((System.Data.DataRowView)(cbSilos.SelectedItem)).Row.ItemArray[0]);
+            AdvertirInventarioSiloSeleccionado();
+        }
+
+        private bool ValidarInventarioDespacho()
+        {
+            if (cbProducto.SelectedItem == null || string.IsNullOrWhiteSpace(cbProducto.Text))
+                return true;
+
+            if (cbSilos.SelectedItem == null || string.IsNullOrWhiteSpace(cbSilos.Text))
+            {
+                Base.msjAdvertencia("Debe seleccionar un silo.");
+                return false;
+            }
+
+            return ValidarExistenciaInventario(cbProducto.Text, cbSilos.Text, ObtenerPesoNetoCapturado(), bloquearGuardado: true);
+        }
+
+        private void AdvertirInventarioSiloSeleccionado()
+        {
+            if (_omitirAdvertenciaInventario || _modoListado)
+                return;
+            if (cbProducto.SelectedItem == null || cbSilos.SelectedItem == null)
+                return;
+            if (string.IsNullOrWhiteSpace(cbProducto.Text) || string.IsNullOrWhiteSpace(cbSilos.Text))
+                return;
+
+            ValidarExistenciaInventario(cbProducto.Text, cbSilos.Text, ObtenerPesoNetoCapturado(), bloquearGuardado: false);
+        }
+
+        private decimal ObtenerPesoNetoCapturado()
+        {
+            decimal pesoBruto = !string.IsNullOrWhiteSpace(txtPesoSalida.Text) ? Convert.ToDecimal(txtPesoSalida.Text) : 0;
+            decimal pesoTara = !string.IsNullOrWhiteSpace(txtPesoEntrada.Text) ? Convert.ToDecimal(txtPesoEntrada.Text) : 0;
+            decimal pesoNeto = pesoBruto - pesoTara;
+            return pesoNeto < 0 ? 0 : pesoNeto;
+        }
+
+        private bool ValidarExistenciaInventario(string nombreProducto, string nombreSilo, decimal pesoNetoDespacho, bool bloquearGuardado)
+        {
+            decimal pesoNetoInventario;
+            decimal pesoAcondicionadoInventario;
+            bool existe = _historicoData.TryObtenerInventario(nombreProducto, nombreSilo, out pesoNetoInventario, out pesoAcondicionadoInventario);
+
+            if (!existe || pesoNetoInventario <= 0)
+            {
+                if (!_historicoData.ProductoTieneInventario(nombreProducto))
+                {
+                    Base.msjAdvertencia("El producto seleccionado no tiene inventario disponible. Registre recepciones completadas antes de crear un despacho.");
+                }
+                else
+                {
+                    Base.msjAdvertencia($"El silo \"{nombreSilo}\" no tiene inventario disponible para \"{nombreProducto}\". Seleccione otro silo con existencia.");
+                }
+                return !bloquearGuardado;
+            }
+
+            if (pesoNetoDespacho > 0 && pesoNetoDespacho > pesoNetoInventario)
+            {
+                Base.msjAdvertencia($"El peso neto del despacho ({pesoNetoDespacho:N2} Kg) supera el inventario disponible en el silo ({pesoNetoInventario:N2} Kg).");
+                return !bloquearGuardado;
+            }
+
+            return true;
         }
 
         private void rtbFechaHasta_CheckedChanged(object sender, EventArgs e)
@@ -1702,7 +1933,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
         }
 
@@ -1721,7 +1952,7 @@ namespace principal
              
                 if (analisis)
                 {
-                    DialogResult result = MessageBox.Show("Se eliminara el Análisis.Recuerde al eliminar registro no podra ser recuperado, ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
+                    DialogResult result = Base.msjPreguntaCancel("Se eliminará el análisis. Al eliminar este registro no podrá recuperarse. ¿Desea continuar con la eliminación?");
                     if (result == DialogResult.Yes)
                     {
 
@@ -1782,7 +2013,8 @@ namespace principal
         {
             try
             {
-                conexionSerial();
+                if (!conexionSerial())
+                    return;
                 string Recibidos = string.Empty;
                 string peso = string.Empty;
 
@@ -1805,7 +2037,7 @@ namespace principal
             catch (Exception ex)
             {
                 spRomana.Close();
-                MessageBox.Show(ex.Message, "Error");
+                Base.msjError(ex.Message);
 
             }
 
@@ -1815,7 +2047,8 @@ namespace principal
         {
             
             try{
-                conexionSerial();
+                if (!conexionSerial())
+                    return;
             string Recibidos = string.Empty;
             string peso = string.Empty;
             if (spRomana.IsOpen)
@@ -1834,25 +2067,41 @@ namespace principal
             catch (Exception ex)
             {
                 spRomana.Close();
-                MessageBox.Show(ex.Message, "Error");
+                Base.msjError(ex.Message);
 
             }
 
         }
 
-        private void conexionSerial()
+        private bool conexionSerial()
         {
-            spRomana.PortName = ConfigurationManager.AppSettings["PortName"];
+            string puerto = ConfigurationManager.AppSettings["PortName"];
+            if (string.IsNullOrWhiteSpace(puerto))
+                puerto = "COM1";
 
+            bool existe = SerialPort.GetPortNames()
+                .Any(p => string.Equals(p, puerto, StringComparison.OrdinalIgnoreCase));
+            if (!existe)
+            {
+                UiDialog.Show(
+                    "No hay báscula conectada en el puerto " + puerto + ".\n\nUse el modo Manual para ingresar el peso, o conecte la romana y verifique el puerto (PortName) en la configuración.",
+                    "Báscula no disponible",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                if (rbManual != null)
+                    rbManual.Checked = true;
+                return false;
+            }
+
+            spRomana.PortName = puerto;
             spRomana.BaudRate = Convert.ToInt32(ConfigurationManager.AppSettings["BaudRate"]);
             spRomana.DataBits = Convert.ToInt32(ConfigurationManager.AppSettings["DataBits"]);
             spRomana.Parity = Parity.None;
             spRomana.StopBits = StopBits.One;
             spRomana.Handshake = Handshake.None;
             spRomana.ReadTimeout = 5000;
-
-
             spRomana.Open();
+            return true;
         }
 
         private void txtConductor_KeyDown(object sender, KeyEventArgs e)
@@ -1928,7 +2177,7 @@ namespace principal
             else
             {
 
-                MessageBox.Show("No existen elementos para realizar exportación.", "Información", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation);
+                Base.msjAdvertencia("No existen elementos para realizar exportación.");
             }
         }
         despacho llenarobjetoReporte(DataRow fila)

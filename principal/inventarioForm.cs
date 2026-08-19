@@ -33,18 +33,34 @@ namespace principal
         private void InventarioForm_Load(object sender, EventArgs e)
         {
             UiTheme.ApplyForm(this);
-            AlinearImprimirConGrid();
+            AlinearBotonesSuperiores();
         }
 
-        private void AlinearImprimirConGrid()
+        private void AlinearBotonesSuperiores()
         {
-            if (btnImprimir == null || dgvInventario == null) return;
+            const int gap = 14;
+            const int height = 34;
 
+            if (btnFiltrar == null || btnTodos == null || btnImprimir == null)
+                return;
+
+            UiTheme.StyleCompactPrimaryButton(btnFiltrar, "Filtrar", 100, height);
+            UiTheme.StyleCompactSecondaryButton(btnTodos, "Todos", 100, height);
             btnImprimir.Width = Math.Max(btnImprimir.Width, 118);
-            btnImprimir.Height = 34;
-            btnImprimir.Left = dgvInventario.Right - btnImprimir.Width;
-            btnImprimir.Top = Math.Max(8, dgvInventario.Top - btnImprimir.Height - 8);
-            btnImprimir.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnImprimir.Height = height;
+
+            int top = cbSilos != null
+                ? cbSilos.Top + Math.Max(0, (cbSilos.Height - height) / 2)
+                : Math.Max(8, dgvInventario.Top - height - 8);
+
+            int x = cbSilos != null ? cbSilos.Right + gap : btnFiltrar.Left;
+            btnFiltrar.SetBounds(x, top, 100, height);
+            btnTodos.SetBounds(btnFiltrar.Right + gap, top, 100, height);
+            btnImprimir.SetBounds(btnTodos.Right + gap, top, btnImprimir.Width, height);
+
+            btnFiltrar.Anchor = AnchorStyles.Top;
+            btnTodos.Anchor = AnchorStyles.Top;
+            btnImprimir.Anchor = AnchorStyles.Top;
         }
         private void llenarGrid()
         {
@@ -228,7 +244,7 @@ namespace principal
             else
             {
 
-                MessageBox.Show("No existen elementos para realizar exportación.", "Información", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation);
+                Base.msjAdvertencia("No existen elementos para realizar exportación.");
             }
         }
 

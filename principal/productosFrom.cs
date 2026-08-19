@@ -25,8 +25,8 @@ namespace principal
 
         private void productosFrom_Load(object sender, EventArgs e)
         {
+            UiTheme.ApplyCatalogScreen(this);
             cargarProducto();
-            
         }
        
              void cargarProducto()

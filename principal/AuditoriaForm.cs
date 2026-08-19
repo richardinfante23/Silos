@@ -19,6 +19,7 @@ namespace principal
         public AuditoriaForm()
         {
             InitializeComponent();
+            UiTheme.ApplyForm(this);
         }
 
         private void btnBuscar_Click(object sender, EventArgs e)

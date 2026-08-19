@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace principal
@@ -42,9 +43,206 @@ namespace principal
 
         private void conductoresForm_Load(object sender, EventArgs e)
         {
-            UiTheme.ApplyForm(this);
-            AcomodarBotonesCompaneros();
+            UiTheme.ApplyAppIcon(this);
+            AplicarLayoutConductorModerno();
             cargarTransporte();
+        }
+
+        private void AplicarLayoutConductorModerno()
+        {
+            // Reorganiza la ventana para que se vea igual de moderna que el resto.
+            // No cambia la lógica de guardar/editar; solo el layout.
+            if (txtCedula == null || txtNombre == null || cbTransporte == null) return;
+
+            Text = actualizar ? "Editar conductor" : "Nuevo conductor";
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            StartPosition = FormStartPosition.CenterParent;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            ControlBox = true;
+            ClientSize = new Size(720, 330);
+            BackColor = UiTheme.Surface;
+            Font = UiTheme.FontRegular;
+
+            UiTheme.StyleTextBox(txtCedula);
+            UiTheme.StyleTextBox(txtNombre);
+            cbTransporte.FlatStyle = FlatStyle.System;
+            cbTransporte.BackColor = UiTheme.Card;
+            cbTransporte.ForeColor = UiTheme.TextPrimary;
+            cbTransporte.Font = UiTheme.FontRegular;
+            cbTransporte.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbTransporte.IntegralHeight = true;
+            cbTransporte.MinimumSize = new Size(0, 32);
+
+            var comboTransporte = UiTheme.WrapInputFrame(cbTransporte);
+
+            // Título.
+            if (label4 != null)
+            {
+                label4.Text = "Conductores";
+                label4.AutoSize = false;
+                label4.Dock = DockStyle.Fill;
+                label4.Font = UiTheme.FontTitle;
+                label4.ForeColor = UiTheme.Primary;
+                label4.BackColor = Color.Transparent;
+                label4.Margin = new Padding(0, 0, 0, 6);
+                label4.TextAlign = ContentAlignment.MiddleLeft;
+            }
+
+            // Caja principal.
+            var host = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 3,
+                Padding = new Padding(18, 14, 18, 12),
+                BackColor = UiTheme.Surface
+            };
+            host.RowStyles.Add(new RowStyle(SizeType.Absolute, 44F));
+            host.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            host.RowStyles.Add(new RowStyle(SizeType.Absolute, 58F));
+
+            var card = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = UiTheme.Card,
+                Padding = new Padding(16, 12, 16, 12)
+            };
+
+            // Campos.
+            var fields = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 3,
+                BackColor = UiTheme.Card
+            };
+            fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 74F));
+            fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 74F));
+            fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 78F));
+
+            fields.Controls.Add(CrearFilaCampoDialogo(label1, "Cédula", txtCedula), 0, 0);
+            fields.Controls.Add(CrearFilaCampoDialogo(label2, "Nombre", txtNombre), 0, 1);
+
+            var transporteCell = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                BackColor = UiTheme.Card
+            };
+            transporteCell.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            transporteCell.RowStyles.Add(new RowStyle(SizeType.Absolute, 44F));
+
+            if (label3 != null)
+            {
+                label3.Text = "Transporte:";
+                label3.AutoSize = false;
+                label3.Dock = DockStyle.Fill;
+                label3.TextAlign = ContentAlignment.MiddleLeft;
+                label3.ForeColor = UiTheme.TextMuted;
+                label3.Font = UiTheme.FontRegular;
+                label3.BackColor = Color.Transparent;
+            }
+
+            // Combo + botones de transporte.
+            var transporteRow = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 3,
+                RowCount = 1,
+                BackColor = UiTheme.Card
+            };
+            transporteRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            transporteRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
+            transporteRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
+            transporteRow.RowStyles.Add(new RowStyle(SizeType.Absolute, 44F));
+
+            comboTransporte.Dock = DockStyle.Fill;
+            comboTransporte.Margin = new Padding(0, 4, 8, 4);
+
+            // Estilos compactos para los botones del lado.
+            UiTheme.StyleCompactPrimaryButton(btnAgregarTransporte, "Agregar", 108, 32);
+            UiTheme.StyleCompactSecondaryButton(button1, "Editar", 108, 32);
+
+            btnAgregarTransporte.Margin = new Padding(0, 6, 8, 0);
+            button1.Margin = new Padding(0, 6, 0, 0);
+
+            transporteRow.Controls.Add(comboTransporte, 0, 0);
+            transporteRow.Controls.Add(btnAgregarTransporte, 1, 0);
+            transporteRow.Controls.Add(button1, 2, 0);
+
+            if (label3 != null)
+                transporteCell.Controls.Add(label3, 0, 0);
+            transporteCell.Controls.Add(transporteRow, 0, 1);
+            fields.Controls.Add(transporteCell, 0, 2);
+
+            card.Controls.Add(fields);
+
+            // Acciones.
+            var actions = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                Padding = new Padding(0, 10, 0, 0),
+                BackColor = UiTheme.Surface
+            };
+
+            btnEliminar.Visible = actualizar;
+            btnEliminar.Enabled = actualizar;
+
+            actions.Controls.Add(btnGuardar);
+            actions.Controls.Add(btnCancelar);
+            if (actualizar)
+                actions.Controls.Add(btnEliminar);
+
+            UiTheme.ApplyActionButtons(actions);
+
+            // Aplicar.
+            Controls.Clear();
+            if (label4 != null)
+                host.Controls.Add(label4, 0, 0);
+            host.Controls.Add(card, 0, 1);
+            host.Controls.Add(actions, 0, 2);
+            Controls.Add(host);
+
+            AcceptButton = btnGuardar;
+            CancelButton = btnCancelar;
+        }
+
+        private static Control CrearFilaCampoDialogo(Label etiqueta, string texto, Control campo)
+        {
+            var cell = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                Margin = new Padding(0, 0, 0, 6),
+                BackColor = UiTheme.Card
+            };
+            cell.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            cell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            if (etiqueta != null)
+            {
+                etiqueta.Text = texto;
+                etiqueta.AutoSize = false;
+                etiqueta.Dock = DockStyle.Fill;
+                etiqueta.TextAlign = ContentAlignment.MiddleLeft;
+                etiqueta.ForeColor = UiTheme.TextMuted;
+                etiqueta.Font = UiTheme.FontRegular;
+                etiqueta.BackColor = Color.Transparent;
+                cell.Controls.Add(etiqueta, 0, 0);
+            }
+
+            if (campo != null)
+            {
+                campo.Dock = DockStyle.Fill;
+                cell.Controls.Add(campo, 0, 1);
+            }
+
+            return cell;
         }
 
         private void AcomodarBotonesCompaneros()
@@ -108,6 +306,9 @@ namespace principal
 
                 if (cbTransporte.SelectedValue != null && cbTransporte.SelectedValue != DBNull.Value)
                     idTransporteSeleccionado = Convert.ToInt32(cbTransporte.SelectedValue);
+
+                cbTransporte.FlatStyle = FlatStyle.System;
+                cbTransporte.DropDownStyle = ComboBoxStyle.DropDownList;
             }
             catch (Exception ex)
             {
@@ -192,19 +393,19 @@ namespace principal
                             break;
                         }
                     }
-                    MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Base.msjExito("Registro guardado exitosamente.");
                 }
                 else
                 {
                     if (id == 0)
-                        MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador");
+                        Base.msjError("Ha ocurrido un error. Contacte al administrador del sistema.");
                     cd.actualizar(id, Convert.ToDecimal(txtCedula.Text), txtNombre.Text, idTransporte, false);
                 }
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjErrorOperacion(ex, "guardar el conductor");
             }
         }
 
@@ -242,21 +443,21 @@ namespace principal
             {
                 if (cd.buscartramitesxidconductor(id).Rows.Count > 0)
                 {
-                    MessageBox.Show("Registro no puede ser eliminado ya que se encuentra asociado a Tramites de recepcion o despacho", "Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    Base.msjError("El registro no puede ser eliminado porque se encuentra asociado a trámites de recepción o despacho.");
                     return;
                 }
-                DialogResult result = MessageBox.Show("Recuerde al eliminar registro no podra ser recuperado, ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
+                DialogResult result = Base.msjPreguntaCancel("Al eliminar este registro no podrá recuperarse. ¿Desea continuar con la eliminación?");
                 if (result == DialogResult.Yes)
                 {
                     cd.actualizar(id, Convert.ToDecimal(txtCedula.Text), txtNombre.Text, ObtenerIdTransporteSeleccionado(), true);
-                    MessageBox.Show("Registro Eliminado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Base.msjExito("Registro eliminado exitosamente.");
                     eliminado = true;
                     Close();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
         }
 
@@ -271,7 +472,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
             cargarTransporte();
         }
@@ -285,7 +486,7 @@ namespace principal
 
                 if (cbTransporte.SelectedItem == null)
                 {
-                    MessageBox.Show("Debe seleccionar un transporte.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Base.msjAdvertencia("Debe seleccionar un transporte.");
                     return;
                 }
 
@@ -306,7 +507,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
         }
     }

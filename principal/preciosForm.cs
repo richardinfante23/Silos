@@ -15,6 +15,7 @@ namespace principal
         public preciosForm(List<detalle_articuloBO> lista)
         {
             InitializeComponent();
+            UiTheme.ApplyPickerDialog(this, Precios, cbPrecios);
             llenarPrecios(lista);
             cbPrecios.KeyPress += cbseccion_KeyPress;
         }

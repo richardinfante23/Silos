@@ -41,16 +41,17 @@ namespace principal
 
         public static void ApplyForm(Form form)
         {
-            if (form == null) return;
+            if (form == null || form.IsDisposed) return;
 
-            form.BackgroundImage = null;
-            form.BackgroundImageLayout = ImageLayout.None;
-            form.BackColor = Surface;
-            form.Font = FontRegular;
-            form.ForeColor = TextPrimary;
             ApplyAppIcon(form);
 
-            if (form.IsMdiContainer)
+            if (IsCustomLayoutForm(form))
+            {
+                _themeAppliedForms.Add(form);
+                return;
+            }
+
+            if (form is principalFom)
             {
                 foreach (Control control in form.Controls)
                 {
@@ -60,13 +61,162 @@ namespace principal
                         break;
                     }
                 }
+                _themeAppliedForms.Add(form);
+                return;
             }
+
+            if (_themeAppliedForms.Contains(form)) return;
+
+            form.BackgroundImage = null;
+            form.BackgroundImageLayout = ImageLayout.None;
+            form.BackColor = Surface;
+            form.Font = FontRegular;
+            form.ForeColor = TextPrimary;
 
             foreach (Control child in form.Controls)
                 StyleControlTree(child);
 
             ApplyActionButtons(form);
+            ApplyDialogChrome(form);
             _themeAppliedForms.Add(form);
+        }
+
+        /// <summary>
+        /// Listados tipo catálogo (título + grilla + botones) con el mismo lenguaje que Recepción.
+        /// </summary>
+        public static void ApplyCatalogScreen(Form form)
+        {
+            if (form == null || form.IsDisposed) return;
+            if (_catalogLayoutForms.Contains(form)) return;
+
+            ApplyForm(form);
+
+            DataGridView grid = form.Controls.OfType<DataGridView>().FirstOrDefault();
+            if (grid == null) return;
+
+            Label title = form.Controls.OfType<Label>()
+                .OrderBy(l => l.Top)
+                .FirstOrDefault(l => l.Font != null && l.Font.Size >= 12);
+
+            if (title == null && !string.IsNullOrWhiteSpace(form.Text))
+            {
+                title = new Label
+                {
+                    Text = form.Text,
+                    AutoSize = false
+                };
+            }
+
+            List<Button> buttons = form.Controls.OfType<Button>()
+                .OrderBy(b => b.Left)
+                .ToList();
+
+            var host = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = title != null ? 3 : 2,
+                Padding = new Padding(16, 12, 16, 12),
+                BackColor = Surface
+            };
+            host.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
+            int row = 0;
+            if (title != null)
+            {
+                host.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+                title.AutoSize = false;
+                title.Dock = DockStyle.Fill;
+                title.TextAlign = ContentAlignment.MiddleLeft;
+                title.Font = FontTitle;
+                title.ForeColor = Primary;
+                title.BackColor = Color.Transparent;
+                host.Controls.Add(title, 0, row++);
+            }
+
+            host.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            StyleDataGridView(grid);
+            grid.Dock = DockStyle.Fill;
+            grid.Margin = new Padding(0);
+            host.Controls.Add(grid, 0, row++);
+
+            if (buttons.Count > 0)
+            {
+                host.RowStyles.Add(new RowStyle(SizeType.Absolute, 52F));
+                var bar = new FlowLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    FlowDirection = FlowDirection.RightToLeft,
+                    WrapContents = false,
+                    Padding = new Padding(0, 8, 0, 0),
+                    BackColor = Surface
+                };
+                foreach (Button button in buttons.OrderByDescending(b => b.Left))
+                {
+                    button.Margin = new Padding(8, 0, 0, 0);
+                    bar.Controls.Add(button);
+                }
+                host.Controls.Add(bar, 0, row);
+            }
+
+            form.Controls.Add(host);
+            form.FormBorderStyle = FormBorderStyle.Sizable;
+            form.MaximizeBox = true;
+            form.MinimizeBox = true;
+            if (form.MinimumSize.Width < 640 || form.MinimumSize.Height < 400)
+                form.MinimumSize = new Size(640, 400);
+            if (form.MdiParent != null)
+                form.WindowState = FormWindowState.Maximized;
+
+            _catalogLayoutForms.Add(form);
+            form.FormClosed += (s, e) =>
+            {
+                var closed = s as Form;
+                if (closed != null)
+                    _catalogLayoutForms.Remove(closed);
+            };
+        }
+
+        /// <summary>Diálogos pequeños de selección (combo + etiqueta).</summary>
+        public static void ApplyPickerDialog(Form form, Label title, ComboBox combo)
+        {
+            if (form == null) return;
+            ApplyForm(form);
+            form.FormBorderStyle = FormBorderStyle.FixedDialog;
+            form.MaximizeBox = false;
+            form.MinimizeBox = false;
+            form.StartPosition = FormStartPosition.CenterParent;
+            form.ClientSize = new Size(380, 170);
+            form.BackColor = Surface;
+
+            if (title != null)
+            {
+                title.Font = FontTitle;
+                title.ForeColor = Primary;
+                title.BackColor = Color.Transparent;
+                title.AutoSize = false;
+                title.SetBounds(24, 18, 332, 32);
+                title.TextAlign = ContentAlignment.MiddleLeft;
+            }
+
+            if (combo != null)
+            {
+                StyleComboBox(combo);
+                combo.DropDownStyle = ComboBoxStyle.DropDownList;
+                combo.SetBounds(24, 64, 332, 28);
+            }
+        }
+
+        private static bool IsCustomLayoutForm(Form form)
+        {
+            return form is loginForm
+                || form is recepcionForm
+                || form is DespachoForm
+                || form is productorNatural
+                || form is nuevoUsuarioForm
+                || form is personaJuridicaForm
+                || form is asociacionForm
+                || form is conductoresForm;
         }
 
         public static void StylePrimaryButton(Button button)
@@ -198,9 +348,9 @@ namespace principal
                     StyleNewButton(button);
                     button.Tag = "action:nuevo";
                 }
-                else if (key.Contains("guardar") || key.Contains("aceptar") || key.Contains("imprimir") || key.Contains("exportar") || key.Contains("buscar") || key.Contains("login"))
+                else if (key.Contains("guardar") || key.Contains("aceptar") || key.Contains("imprimir") || key.Contains("exportar") || key.Contains("buscar") || key.Contains("login") || key.Contains("filtrar"))
                 {
-                    var iconKey = key.Contains("buscar") ? "buscar"
+                    var iconKey = key.Contains("buscar") || key.Contains("filtrar") ? "buscar"
                         : key.Contains("imprimir") ? "imprimir"
                         : key.Contains("exportar") ? "exportar"
                         : key.Contains("login") ? "login"
@@ -212,6 +362,11 @@ namespace principal
                 {
                     StyleActionButton(button, Card, TextPrimary, Color.FromArgb(230, 236, 241), 1, GetActionIcon("cancelar", TextPrimary), Border);
                     button.Tag = "action:cancelar";
+                }
+                else if (key.Contains("limpiar") || key.Contains("todos") || key.Contains("entrada") || key.Contains("salida"))
+                {
+                    StyleSecondaryButton(button);
+                    button.Tag = "action:secundario";
                 }
             }
 
@@ -558,6 +713,7 @@ namespace principal
         private static Icon _appIcon;
         private static readonly HashSet<Form> _iconAppliedForms = new HashSet<Form>();
         private static readonly HashSet<Form> _themeAppliedForms = new HashSet<Form>();
+        private static readonly HashSet<Form> _catalogLayoutForms = new HashSet<Form>();
         private static bool _globalIconHookInstalled;
 
         /// <summary>
@@ -647,20 +803,13 @@ namespace principal
                             {
                                 _iconAppliedForms.Remove(closed);
                                 _themeAppliedForms.Remove(closed);
+                                _catalogLayoutForms.Remove(closed);
                             }
                         };
                     }
 
-                    if (!_themeAppliedForms.Contains(form))
-                    {
-                        // Evitar repintar el shell principal (tiene botones de navegación propios).
-                        if (!(form is principalFom))
-                        {
-                            ApplyDialogChrome(form);
-                            ApplyActionButtons(form);
-                        }
-                        _themeAppliedForms.Add(form);
-                    }
+                    if (!_themeAppliedForms.Contains(form) && !(form is principalFom))
+                        ApplyForm(form);
                 }
             };
         }
@@ -722,41 +871,127 @@ namespace principal
             }
         }
 
+        public static void StyleDataGridView(DataGridView grid)
+        {
+            if (grid == null) return;
+
+            grid.BackgroundColor = Card;
+            grid.BorderStyle = BorderStyle.None;
+            grid.EnableHeadersVisualStyles = false;
+            grid.ColumnHeadersDefaultCellStyle.BackColor = Primary;
+            grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            grid.ColumnHeadersDefaultCellStyle.Font = FontBold;
+            grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = Primary;
+            grid.ColumnHeadersDefaultCellStyle.SelectionForeColor = Color.White;
+            grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            if (grid.ColumnHeadersHeight < 32)
+                grid.ColumnHeadersHeight = 32;
+            grid.DefaultCellStyle.Font = FontRegular;
+            grid.DefaultCellStyle.BackColor = Card;
+            grid.DefaultCellStyle.ForeColor = TextPrimary;
+            grid.DefaultCellStyle.SelectionBackColor = Accent;
+            grid.DefaultCellStyle.SelectionForeColor = Color.White;
+            grid.DefaultCellStyle.Padding = new Padding(4, 2, 4, 2);
+            grid.RowHeadersVisible = false;
+            grid.RowTemplate.Height = 28;
+            grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(236, 242, 245);
+            grid.GridColor = Border;
+            grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+        }
+
         private static void StyleControlTree(Control control)
         {
             if (control == null) return;
+
+            string typeName = control.GetType().Name;
+            if (typeName.IndexOf("ReportViewer", StringComparison.OrdinalIgnoreCase) >= 0)
+                return;
 
             if (control is Button)
             {
                 // Los botones de acción se estilizan en ApplyActionButtons.
             }
-            else if (control is TextBox || control is ComboBox || control is DateTimePicker)
+            else if (control is TextBox textBox)
             {
-                control.Font = FontRegular;
-                control.ForeColor = TextPrimary;
+                bool readOnly = textBox.ReadOnly;
+                StyleTextBox(textBox);
+                if (readOnly)
+                {
+                    textBox.ReadOnly = true;
+                    textBox.BackColor = FilterStrip;
+                }
+            }
+            else if (control is ComboBox comboBox)
+            {
+                StyleComboBox(comboBox);
+            }
+            else if (control is DateTimePicker picker)
+            {
+                StyleDateTimePicker(picker);
             }
             else if (control is DataGridView grid)
             {
-                grid.BackgroundColor = Card;
-                grid.BorderStyle = BorderStyle.None;
-                grid.EnableHeadersVisualStyles = false;
-                grid.ColumnHeadersDefaultCellStyle.BackColor = Primary;
-                grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-                grid.ColumnHeadersDefaultCellStyle.Font = FontBold;
-                grid.DefaultCellStyle.Font = FontRegular;
-                grid.DefaultCellStyle.SelectionBackColor = Accent;
-                grid.DefaultCellStyle.SelectionForeColor = Color.White;
-                grid.RowHeadersVisible = false;
-                grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(236, 242, 245);
+                StyleDataGridView(grid);
             }
-            else if (control is GroupBox || control is Panel || control is TabControl)
+            else if (control is GroupBox groupBox)
             {
-                if (!(control is Panel) || control.BackColor == SystemColors.Control || control.BackColor == SystemColors.InactiveBorder)
-                    control.BackColor = Surface;
+                groupBox.Font = FontBold;
+                groupBox.ForeColor = Primary;
+                groupBox.BackColor = Card;
+            }
+            else if (control is TabControl tabControl)
+            {
+                tabControl.Font = FontBold;
+                try { tabControl.BackColor = Surface; }
+                catch { /* TabControl.BackColor no siempre es asignable */ }
+            }
+            else if (control is TabPage tabPage)
+            {
+                tabPage.BackColor = Surface;
+                tabPage.UseVisualStyleBackColor = false;
+            }
+            else if (control is Panel panel)
+            {
+                if (panel.BackgroundImage != null)
+                    panel.BackgroundImage = null;
+                if (panel.BackColor == SystemColors.Control || panel.BackColor == SystemColors.InactiveBorder)
+                    panel.BackColor = Surface;
+            }
+            else if (control is Label label)
+            {
+                bool onDark = IsDarkSurface(label.BackColor) || (label.Parent != null && IsDarkSurface(label.Parent.BackColor));
+                if (!onDark && label.ForeColor != Color.White)
+                {
+                    label.BackColor = Color.Transparent;
+                    if (label.Font != null && label.Font.Size >= 14)
+                    {
+                        label.Font = FontTitle;
+                        label.ForeColor = Primary;
+                    }
+                    else
+                    {
+                        label.Font = FontRegular;
+                        label.ForeColor = TextMuted;
+                    }
+                }
+            }
+            else if (control is CheckBox || control is RadioButton)
+            {
+                control.Font = FontRegular;
+                control.ForeColor = TextPrimary;
+                if (control.BackColor == SystemColors.Control)
+                    control.BackColor = Color.Transparent;
             }
 
             foreach (Control child in control.Controls)
                 StyleControlTree(child);
+        }
+
+        private static bool IsDarkSurface(Color color)
+        {
+            if (color.A == 0) return false;
+            return color.GetBrightness() < 0.35f;
         }
     }
 }

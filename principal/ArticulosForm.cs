@@ -72,7 +72,7 @@ namespace principal
             catch (Exception ex)
             {
 
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
 
 }
@@ -88,7 +88,7 @@ namespace principal
             catch (Exception ex)
             {
 
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
 
 
@@ -155,7 +155,7 @@ namespace principal
             catch (Exception ex)
             {
 
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
 
 
@@ -187,7 +187,7 @@ namespace principal
             catch (Exception ex)
             {
 
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
 
 
@@ -365,6 +365,7 @@ namespace principal
 
         private void ArticulosForm_Load(object sender, EventArgs e)
         {
+            UiTheme.ApplyForm(this);
             if (desdeMovimientos)
             {
 
@@ -403,7 +404,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }

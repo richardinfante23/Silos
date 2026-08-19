@@ -63,7 +63,7 @@ namespace principal
                 }
                 catch (Exception ex)
                 {
-                    UiDialog.Show(this, "Ha ocurrido un error al iniciar sesión. Contacte al administrador del sistema.\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Base.msjErrorOperacion(ex, "iniciar sesión");
                     Application.Exit();
                 }
                

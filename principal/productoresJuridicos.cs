@@ -55,6 +55,9 @@ namespace principal
 
         private void productoresJuridicos_Load(object sender, EventArgs e)
         {
+            if (!productor)
+                this.Text = "Clientes Jurídicos";
+            UiTheme.ApplyCatalogScreen(this);
             cargarProductor();
         }
         void cargarProductor()
@@ -77,7 +80,7 @@ namespace principal
                 else
                 {
 
-                    MessageBox.Show("No se Encontraron resultados","Información",MessageBoxButtons.OK,MessageBoxIcon.Information);
+                    Base.msjInformacion("No se encontraron resultados.");
                 }
                
 

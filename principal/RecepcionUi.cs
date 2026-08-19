@@ -122,15 +122,15 @@ namespace principal
             };
 
             dtpHasta.Text = "1. Datos";
-            tpAnalisis.Text = "2. Análisis";
-            tpRomana.Text = "3. Pesaje";
+            tpRomana.Text = "2. Pesaje";
+            tpAnalisis.Text = "3. Análisis";
             dtpHasta.BackColor = UiTheme.Surface;
-            tpAnalisis.BackColor = UiTheme.Surface;
             tpRomana.BackColor = UiTheme.Surface;
+            tpAnalisis.BackColor = UiTheme.Surface;
 
             _tcPasosCaptura.TabPages.Add(dtpHasta);
-            _tcPasosCaptura.TabPages.Add(tpAnalisis);
             _tcPasosCaptura.TabPages.Add(tpRomana);
+            _tcPasosCaptura.TabPages.Add(tpAnalisis);
 
             _tpCaptura.Controls.Add(_tcPasosCaptura);
             tcRecepcion.Controls.Add(_tpCaptura);
@@ -326,6 +326,7 @@ namespace principal
         private void RestaurarFormularioCaptura()
         {
             if (pInicio == null || pGuia == null || _panelMetaRecepcion == null) return;
+            bool mostrarEstatus = objRecepcion != null && objRecepcion.id > 0;
             pInicio.MinimumSize = new Size(0, AlturaCardInicio);
             pInicio.Height = AlturaCardInicio;
             pInicio.Visible = true;
@@ -346,6 +347,9 @@ namespace principal
             if (txtObservaciones != null) txtObservaciones.Visible = true;
             if (btnAgregarSilos != null) btnAgregarSilos.Visible = true;
             if (btnEditarSilos != null) btnEditarSilos.Visible = true;
+            if (label11 != null) label11.Visible = mostrarEstatus;
+            if (cbEstatus != null) cbEstatus.Visible = mostrarEstatus;
+            if (lbAnulado != null) lbAnulado.Visible = mostrarEstatus && !string.IsNullOrWhiteSpace(lbAnulado.Text);
             ConfigurarTicketAutogenerado();
         }
 
@@ -874,6 +878,17 @@ namespace principal
 
         private TableLayoutPanel CrearFilaCampos(Control[] c1, Control[] c2, Control[] c3, Control[] c4)
         {
+            bool v1 = TieneCampoVisible(c1);
+            bool v2 = TieneCampoVisible(c2);
+            bool v3 = TieneCampoVisible(c3);
+            bool v4 = TieneCampoVisible(c4);
+            int visibles = 0;
+            if (v1) visibles++;
+            if (v2) visibles++;
+            if (v3) visibles++;
+            if (v4) visibles++;
+            float ancho = visibles <= 0 ? 25F : 100F / visibles;
+
             var row = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
@@ -882,10 +897,10 @@ namespace principal
                 BackColor = UiTheme.Card,
                 Margin = new Padding(0, 2, 0, 2)
             };
-            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, v1 ? ancho : 0F));
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, v2 ? ancho : 0F));
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, v3 ? ancho : 0F));
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, v4 ? ancho : 0F));
 
             AgregarCeldaCampo(row, 0, c1);
             AgregarCeldaCampo(row, 1, c2);
@@ -909,7 +924,6 @@ namespace principal
 
             if (pair == null || pair.Length == 0)
             {
-                row.Controls.Add(cell, col, 0);
                 return;
             }
 
@@ -938,6 +952,20 @@ namespace principal
                 cell.Controls.Add(campo, 0, 1);
             }
             row.Controls.Add(cell, col, 0);
+        }
+
+        private static bool TieneCampoVisible(Control[] pair)
+        {
+            if (pair == null || pair.Length == 0)
+                return false;
+
+            foreach (Control control in pair)
+            {
+                if (control != null && control.Visible)
+                    return true;
+            }
+
+            return false;
         }
 
         private Panel CrearPanelMeta()
@@ -989,11 +1017,14 @@ namespace principal
             btnAgregarSilos.Margin = new Padding(8, 4, 4, 4);
             btnEditarSilos.Margin = new Padding(4, 4, 0, 4);
 
+            bool mostrarEstatus = objRecepcion != null && objRecepcion.id > 0;
             label11.Text = "Estatus";
             label11.AutoSize = true;
             label11.Anchor = AnchorStyles.Left;
             label11.ForeColor = UiTheme.TextMuted;
+            label11.Visible = mostrarEstatus;
             cbEstatus.Dock = DockStyle.Fill;
+            cbEstatus.Visible = mostrarEstatus;
 
             top.Controls.Add(label23, 0, 0);
             top.Controls.Add(cbSilos, 1, 0);
@@ -1022,6 +1053,7 @@ namespace principal
             txtObservaciones.MinimumSize = new Size(0, 52);
             lbAnulado.AutoSize = true;
             lbAnulado.Anchor = AnchorStyles.Left;
+            lbAnulado.Visible = mostrarEstatus && !string.IsNullOrWhiteSpace(lbAnulado.Text);
             obs.Controls.Add(label24, 0, 0);
             obs.Controls.Add(txtObservaciones, 1, 0);
             obs.Controls.Add(lbAnulado, 2, 0);
@@ -1143,10 +1175,10 @@ namespace principal
         {
             if (_tcPasosCaptura == null) return;
 
-            if (!_tcPasosCaptura.TabPages.Contains(tpAnalisis))
-                _tcPasosCaptura.TabPages.Add(tpAnalisis);
             if (!_tcPasosCaptura.TabPages.Contains(tpRomana))
                 _tcPasosCaptura.TabPages.Add(tpRomana);
+            if (!_tcPasosCaptura.TabPages.Contains(tpAnalisis))
+                _tcPasosCaptura.TabPages.Add(tpAnalisis);
 
             bool tieneRegistro = objRecepcion != null && objRecepcion.id > 0;
             bool anulado = tieneRegistro && objRecepcion.id_estatus == 6;
@@ -1157,9 +1189,9 @@ namespace principal
                 && (objRecepcion.id_estatus >= 2 || analisisNoAplica);
 
             if (!tpAnalisis.Enabled && _tcPasosCaptura.SelectedTab == tpAnalisis)
-                _tcPasosCaptura.SelectedTab = dtpHasta;
+                _tcPasosCaptura.SelectedTab = tpRomana.Enabled ? tpRomana : dtpHasta;
             if (!tpRomana.Enabled && _tcPasosCaptura.SelectedTab == tpRomana)
-                _tcPasosCaptura.SelectedTab = tieneRegistro ? tpAnalisis : dtpHasta;
+                _tcPasosCaptura.SelectedTab = dtpHasta;
         }
 
         public void ConfigurarColumnasRecepcionVisibles()

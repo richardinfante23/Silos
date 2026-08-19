@@ -29,7 +29,7 @@ namespace principal
                 {
                     // Specify command StoredProcedure
                     NpgsqlCommand command = new NpgsqlCommand("\"buscardespacho\"", conn);
-                    command.Parameters.AddWithValue(":prmid", NpgsqlTypes.NpgsqlDbType.Integer, prmid);
+                    command.Parameters.AddWithValue(":prmid", NpgsqlTypes.NpgsqlDbType.Numeric, prmid);
 
                     command.Parameters.AddWithValue(":prmid_producto", NpgsqlTypes.NpgsqlDbType.Integer, prmid_producto);
                     command.Parameters.AddWithValue(":prmid_condutor", NpgsqlTypes.NpgsqlDbType.Integer, prmid_condutor);
@@ -95,7 +95,7 @@ namespace principal
                     command.Parameters.AddWithValue(":prmnro_guia", NpgsqlTypes.NpgsqlDbType.Varchar, prmnro_guia);
                     command.Parameters.AddWithValue(":prmpeso_guia", NpgsqlTypes.NpgsqlDbType.Numeric, prmpeso_guia);
                     command.Parameters.AddWithValue(":prmid_producto", NpgsqlTypes.NpgsqlDbType.Integer, prmid_producto);
-                    command.Parameters.AddWithValue(":prmid_productor", NpgsqlTypes.NpgsqlDbType.Integer, prmid_productor);
+                    command.Parameters.AddWithValue(":prmid_destino", NpgsqlTypes.NpgsqlDbType.Integer, prmid_productor);
                     command.Parameters.AddWithValue(":prmobservaciones", NpgsqlTypes.NpgsqlDbType.Varchar, prmobservaciones);
                     command.Parameters.AddWithValue(":prmid_estatus", NpgsqlTypes.NpgsqlDbType.Integer, prmid_estatus);
                     command.Parameters.AddWithValue(":prmpeso_bruto", NpgsqlTypes.NpgsqlDbType.Numeric, prmpeso_bruto);
@@ -160,7 +160,7 @@ namespace principal
                     command.Parameters.AddWithValue(":prmnro_guia", NpgsqlTypes.NpgsqlDbType.Varchar, prmnro_guia);
                     command.Parameters.AddWithValue(":prmpeso_guia", NpgsqlTypes.NpgsqlDbType.Numeric, prmpeso_guia);
                     command.Parameters.AddWithValue(":prmid_producto", NpgsqlTypes.NpgsqlDbType.Integer, prmid_producto);
-                    command.Parameters.AddWithValue(":prmid_productor", NpgsqlTypes.NpgsqlDbType.Integer, prmid_productor);
+                    command.Parameters.AddWithValue(":prmid_destino", NpgsqlTypes.NpgsqlDbType.Integer, prmid_productor);
                     command.Parameters.AddWithValue(":prmobservaciones", NpgsqlTypes.NpgsqlDbType.Varchar, prmobservaciones);
                     command.Parameters.AddWithValue(":prmid_estatus", NpgsqlTypes.NpgsqlDbType.Integer, prmid_estatus);
                     command.Parameters.AddWithValue(":prmpeso_bruto", NpgsqlTypes.NpgsqlDbType.Numeric, prmpeso_bruto);
@@ -168,7 +168,7 @@ namespace principal
                     command.Parameters.AddWithValue(":prmid_silos", NpgsqlTypes.NpgsqlDbType.Integer, prmid_silos);
                     command.Parameters.AddWithValue(":prmhora_entrada", NpgsqlTypes.NpgsqlDbType.Timestamp, prmhora_entrada);
                     command.Parameters.AddWithValue(":prmhora_salida", NpgsqlTypes.NpgsqlDbType.Timestamp, prmhora_salida);
-                    command.Parameters.AddWithValue(":prmid_destino_juridico", NpgsqlTypes.NpgsqlDbType.Integer, prmid_destino_juridico);
+                    command.Parameters.AddWithValue(":prmid_destino_natural", NpgsqlTypes.NpgsqlDbType.Integer, prmid_destino_juridico);
                    //command.Parameters.AddWithValue(":prmresumen", NpgsqlTypes.NpgsqlDbType.Boolean, prmresumen);
                     #region parametro cursor
                     NpgsqlParameter prmCursor = new NpgsqlParameter(":ref", NpgsqlTypes.NpgsqlDbType.Refcursor);

@@ -55,6 +55,7 @@ namespace principal
             if (!productor)
                 this.Text = "Clientes Naturales";
 
+            UiTheme.ApplyCatalogScreen(this);
             cargarProductor();
            
         }

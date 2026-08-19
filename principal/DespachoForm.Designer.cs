@@ -1119,6 +1119,8 @@
             // 
             // dtpFecha
             // 
+            this.dtpFecha.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtpFecha.CustomFormat = "dd/MM/yyyy";
             this.dtpFecha.Location = new System.Drawing.Point(89, 74);
             this.dtpFecha.Name = "dtpFecha";
             this.dtpFecha.Size = new System.Drawing.Size(200, 20);

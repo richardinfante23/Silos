@@ -90,7 +90,7 @@ namespace principal
             catch (Exception ex)
             {
 
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
             return existencia;
         }
@@ -350,7 +350,7 @@ namespace principal
             catch (Exception ex)
             {
 
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
 
         }
@@ -464,7 +464,7 @@ namespace principal
             catch (Exception ex)
             {
 
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
 
 
@@ -523,7 +523,7 @@ namespace principal
             catch (Exception ex)
             {
 
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
 
         }
@@ -568,7 +568,7 @@ namespace principal
             catch (Exception ex)
             {
 
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
         }
 
@@ -987,7 +987,7 @@ namespace principal
             catch (Exception ex)
             {
 
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
 
         }
@@ -1132,13 +1132,14 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
 
             }
         }
 
         private void MovimientoArticulosForm_Load(object sender, EventArgs e)
         {
+            UiTheme.ApplyForm(this);
             if (desdearticulos)
                 Buscar();
         }

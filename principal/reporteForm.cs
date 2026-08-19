@@ -25,6 +25,7 @@ namespace principal
 
         private void reporteForm_Load(object sender, EventArgs e)
         {
+            UiTheme.ApplyForm(this);
             this.rvReporte.LocalReport.SubreportProcessing +=new SubreportProcessingEventHandler(SubreportProcessingEventHandler);
             this.rvReporte.RefreshReport();
         }

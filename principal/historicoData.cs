@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -57,6 +58,59 @@ namespace principal
                 throw new Exception(ex.Message);
             }
             return redusltadoDT;
+        }
+
+        private static readonly CultureInfo CulturaEs = CultureInfo.GetCultureInfo("es-VE");
+
+        private static string NormalizarNombre(string valor)
+        {
+            if (string.IsNullOrWhiteSpace(valor))
+                return string.Empty;
+            return CulturaEs.TextInfo.ToTitleCase(valor.Trim().ToLowerInvariant());
+        }
+
+        public bool TryObtenerInventario(string nombreProducto, string nombreSilo, out decimal pesoNeto, out decimal pesoAcondicionado)
+        {
+            pesoNeto = 0;
+            pesoAcondicionado = 0;
+
+            string producto = NormalizarNombre(nombreProducto);
+            string silo = NormalizarNombre(nombreSilo);
+            if (string.IsNullOrEmpty(producto) || string.IsNullOrEmpty(silo))
+                return false;
+
+            DataTable dt = buscar();
+            foreach (DataRow fila in dt.Rows)
+            {
+                if (NormalizarNombre(Convert.ToString(fila["producto"])) != producto)
+                    continue;
+                if (NormalizarNombre(Convert.ToString(fila["silos"])) != silo)
+                    continue;
+
+                pesoNeto = Convert.ToDecimal(fila["peso_neto"]);
+                pesoAcondicionado = Convert.ToDecimal(fila["peso_acondicionado"]);
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool ProductoTieneInventario(string nombreProducto)
+        {
+            string producto = NormalizarNombre(nombreProducto);
+            if (string.IsNullOrEmpty(producto))
+                return false;
+
+            DataTable dt = buscar();
+            foreach (DataRow fila in dt.Rows)
+            {
+                if (NormalizarNombre(Convert.ToString(fila["producto"])) != producto)
+                    continue;
+                if (Convert.ToDecimal(fila["peso_neto"]) > 0)
+                    return true;
+            }
+
+            return false;
         }
         #endregion
 

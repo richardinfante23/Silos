@@ -33,7 +33,7 @@ namespace principal
                 {
                     sd.insertar(txtNombre.Text);
 
-                    MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Base.msjExito("Registro guardado exitosamente.");
 
 
                 }
@@ -41,16 +41,16 @@ namespace principal
                 {
                     if (id == 0)
                     {
-                        MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador");
+                        Base.msjError("Ha ocurrido un error. Contacte al administrador del sistema.");
                     }
                     sd.actualizar(id, txtNombre.Text, false);
-                    MessageBox.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Base.msjExito("Registro guardado exitosamente.");
                 }
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjErrorOperacion(ex, "guardar el producto");
             }
 
         }
@@ -69,17 +69,17 @@ namespace principal
         {
             try
             {
-                DialogResult result = MessageBox.Show("Recuerde al eliminar registro no podra ser recuperado, ¿Desea realmente eliminar registro?", "Advertencia", MessageBoxButtons.YesNoCancel);
+                DialogResult result = Base.msjPreguntaCancel("Al eliminar este registro no podrá recuperarse. ¿Desea continuar con la eliminación?");
                 if (result == DialogResult.Yes)
                 {
                     if (sd.buscartramitesxidproducto(id).Rows.Count > 0)
                     {
 
-                        MessageBox.Show("Registro no puede ser eliminado ya que se encuentra asociado a productores", "Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                        Base.msjError("El registro no puede ser eliminado porque se encuentra asociado a productores.");
                         return;
                     }
                     sd.actualizar(id, txtNombre.Text, true);
-                    MessageBox.Show("Registro Eliminado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Base.msjExito("Registro eliminado exitosamente.");
 
 
                     Close();
@@ -87,7 +87,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ha ocurrido un Error. Contacte al dersarrollador", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Base.msjError(ex.Message);
             }
         }
 
