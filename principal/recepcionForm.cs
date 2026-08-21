@@ -173,6 +173,24 @@ namespace principal
             }
 
             ActualizarEspacioGrilla();
+            AplicarModoPesajeSegunPerfil();
+        }
+
+        private void AplicarModoPesajeSegunPerfil()
+        {
+            bool puedeManual = supervisor && !Base.EsRomana();
+            if (rbManual != null)
+                rbManual.Visible = puedeManual;
+
+            if (!puedeManual)
+            {
+                if (rbAutomatic != null)
+                    rbAutomatic.Checked = true;
+                if (rbManual != null)
+                    rbManual.Checked = false;
+            }
+
+            ActualizarModoPesaje();
         }
 
         void cargarPaso()
@@ -1342,8 +1360,7 @@ namespace principal
                             btnGuardar.Text = "Guardar";
                             IrAPasoCapturaDatos();
                             ActualizarPasosRecepcion();
-                            if (objRecepcion.id_estatus >= 2)
-                                rbManual.Visible = supervisor;
+                            AplicarModoPesajeSegunPerfil();
 
                           
                             btnAnular.Visible = true;
@@ -2159,13 +2176,24 @@ namespace principal
                 .Any(p => string.Equals(p, puerto, StringComparison.OrdinalIgnoreCase));
             if (!existe)
             {
-                UiDialog.Show(
-                    "No hay báscula conectada en el puerto " + puerto + ".\n\nUse el modo Manual para ingresar el peso, o conecte la romana y verifique el puerto (PortName) en la configuración.",
-                    "Báscula no disponible",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-                if (rbManual != null)
-                    rbManual.Checked = true;
+                if (Base.EsRomana() || (rbManual != null && !rbManual.Visible))
+                {
+                    UiDialog.Show(
+                        "No hay báscula conectada en el puerto " + puerto + ".\n\nConecte la romana y verifique el puerto (PortName) en la configuración.",
+                        "Báscula no disponible",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    UiDialog.Show(
+                        "No hay báscula conectada en el puerto " + puerto + ".\n\nUse el modo Manual para ingresar el peso, o conecte la romana y verifique el puerto (PortName) en la configuración.",
+                        "Báscula no disponible",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    if (rbManual != null)
+                        rbManual.Checked = true;
+                }
                 return false;
             }
 

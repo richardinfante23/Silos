@@ -2,23 +2,59 @@
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2008/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
   <Body>
     <ReportItems>
-      <Rectangle Name="Rectangle3">
+      <Rectangle Name="CopiaConductor">
         <ReportItems>
-          <Image Name="Image1">
+          <Textbox Name="CopiaConductor_lbl">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>COPIA CONDUCTOR</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>10pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <Top>0.1cm</Top>
+            <Left>0.15cm</Left>
+            <Height>0.45cm</Height>
+            <Width>18.8cm</Width>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <BackgroundColor>#E8E8E8</BackgroundColor>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>1pt</PaddingTop>
+              <PaddingBottom>1pt</PaddingBottom>
+            </Style>
+          </Textbox>
+          <Image Name="CopiaConductor_logo">
             <Source>Embedded</Source>
             <Value>logorongratlimpio</Value>
             <Sizing>FitProportional</Sizing>
-            <Top>0.44698cm</Top>
-            <Left>0.14452cm</Left>
-            <Height>1.92988cm</Height>
-            <Width>3.76683cm</Width>
+            <Top>0.65cm</Top>
+            <Left>0.2cm</Left>
+            <Height>1.2cm</Height>
+            <Width>2.4cm</Width>
+            <ZIndex>1</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
               </Border>
             </Style>
           </Image>
-          <Textbox Name="Textbox1">
+          <Textbox Name="CopiaConductor_emp">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
             <Paragraphs>
@@ -28,7 +64,8 @@
                     <Value>=Fields!empresa.Value</Value>
                     <Style>
                       <FontFamily>Calibri</FontFamily>
-                      <FontSize>16pt</FontSize>
+                      <FontSize>12pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
                     </Style>
                   </TextRun>
                 </TextRuns>
@@ -53,17 +90,11 @@
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>BOLETA DE DESPACHO N°: </Value>
+                    <Value>BOLETA DE DESPACHO</Value>
                     <Style>
                       <FontFamily>Calibri</FontFamily>
-                      <FontSize>12pt</FontSize>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!id.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                      <FontSize>12pt</FontSize>
+                      <FontSize>9pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
                     </Style>
                   </TextRun>
                 </TextRuns>
@@ -72,46 +103,10 @@
                 </Style>
               </Paragraph>
             </Paragraphs>
-            <rd:DefaultName>Textbox1</rd:DefaultName>
-            <Top>0.44698cm</Top>
-            <Left>4.40842cm</Left>
-            <Height>1.92988cm</Height>
-            <Width>7.44044cm</Width>
-            <ZIndex>1</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
-          <Textbox Name="Textbox3">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Fecha: </Value>
-                    <Style />
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Now()</Value>
-                    <ToolTip xml:space="preserve"> </ToolTip>
-                    <Style />
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>Textbox3</rd:DefaultName>
-            <Top>0.56838cm</Top>
-            <Left>12.21565cm</Left>
-            <Height>0.6cm</Height>
-            <Width>3.6289cm</Width>
+            <Top>0.6cm</Top>
+            <Left>2.8cm</Left>
+            <Height>1.4cm</Height>
+            <Width>11.5cm</Width>
             <ZIndex>2</ZIndex>
             <Style>
               <Border>
@@ -119,155 +114,76 @@
               </Border>
               <PaddingLeft>2pt</PaddingLeft>
               <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
-          <Textbox Name="nro_guia">
+          <Textbox Name="CopiaConductor_ticket">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
             <Paragraphs>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>Orden de Carga: </Value>
+                    <Value>Ticket</Value>
                     <Style>
                       <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!nro_guia.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
                     </Style>
                   </TextRun>
                 </TextRuns>
-                <Style />
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
               </Paragraph>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>Producto: </Value>
+                    <Value>=Fields!id.Value</Value>
                     <Style>
                       <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!nombre_producto.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>14pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
                     </Style>
                   </TextRun>
                 </TextRuns>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Asociación: </Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!nombre_asociacion.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value />
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style />
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
               </Paragraph>
             </Paragraphs>
-            <rd:DefaultName>nro_guia</rd:DefaultName>
-            <Top>3.58656cm</Top>
-            <Left>0.02646cm</Left>
-            <Height>2.21396cm</Height>
-            <Width>7.66256cm</Width>
+            <Top>0.65cm</Top>
+            <Left>14.6cm</Left>
+            <Height>1.2cm</Height>
+            <Width>4.2cm</Width>
             <ZIndex>3</ZIndex>
             <Style>
               <Border>
-                <Style>None</Style>
+                <Style>Solid</Style>
               </Border>
               <PaddingLeft>2pt</PaddingLeft>
               <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
-          <Textbox Name="cedulaproductor">
+          <Textbox Name="CopiaConductor_row1">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
             <Paragraphs>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>Cedula ó RIF Cliente:</Value>
+                    <Value>="Producto: " &amp; Fields!nombre_producto.Value &amp; "   |   Guía: " &amp; Fields!nro_guia.Value &amp; "   |   Peso guía: " &amp; Format(Fields!peso_guia.Value, "N2") &amp; " Kg   |   Fecha: " &amp; Format(Fields!fecha.Value, "dd/MM/yyyy")</Value>
                     <Style>
                       <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=iif(Fields!cedulaproductor.Value&gt;0,Fields!cedulaproductor.Value,"")</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!letrajuridica.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!rif.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Cliente:</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!nombreproductornatural.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!nombreproductorjuridico.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
                     </Style>
                   </TextRun>
                 </TextRuns>
                 <Style />
               </Paragraph>
             </Paragraphs>
-            <rd:DefaultName>cedulaproductor</rd:DefaultName>
-            <Top>6.79712cm</Top>
-            <Left>0.05292cm</Left>
-            <Height>1.17354cm</Height>
-            <Width>16.55892cm</Width>
+            <Top>2.15cm</Top>
+            <Left>0.2cm</Left>
+            <Height>0.5cm</Height>
+            <Width>18.7cm</Width>
             <ZIndex>4</ZIndex>
             <Style>
               <Border>
@@ -275,88 +191,29 @@
               </Border>
               <PaddingLeft>2pt</PaddingLeft>
               <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
-          <Textbox Name="cedulaproductor1">
+          <Textbox Name="CopiaConductor_row2">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
             <Paragraphs>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>Cedula Conductor: </Value>
+                    <Value>="Cliente/Productor: " &amp; IIf(Fields!cedulaproductor.Value &gt; 0, Fields!letranatural.Value &amp; "-" &amp; CStr(Fields!cedulaproductor.Value) &amp; " " &amp; Fields!nombreproductornatural.Value, Fields!letrajuridica.Value &amp; "-" &amp; Fields!rif.Value &amp; " " &amp; Fields!nombreproductorjuridico.Value) &amp; IIf(Len(Fields!nombre_asociacion.Value) &gt; 0, "   |   Asoc.: " &amp; Fields!nombre_asociacion.Value, "")</Value>
                     <Style>
                       <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!cedulaconductor.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Conductor: </Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!nombreconductor.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Placa: </Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!nro_placa.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Transporte: </Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!nombre_trasnporte.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
                     </Style>
                   </TextRun>
                 </TextRuns>
                 <Style />
               </Paragraph>
             </Paragraphs>
-            <rd:DefaultName>cedulaproductor1</rd:DefaultName>
-            <Top>3.80704cm</Top>
-            <Left>8.93482cm</Left>
-            <Height>1.99348cm</Height>
-            <Width>8.05518cm</Width>
+            <Top>2.7cm</Top>
+            <Left>0.2cm</Left>
+            <Height>0.5cm</Height>
+            <Width>18.7cm</Width>
             <ZIndex>5</ZIndex>
             <Style>
               <Border>
@@ -364,33 +221,29 @@
               </Border>
               <PaddingLeft>2pt</PaddingLeft>
               <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
-          <Textbox Name="Textbox6">
+          <Textbox Name="CopiaConductor_row3">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
             <Paragraphs>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>DATOS PESO</Value>
+                    <Value>="Conductor: " &amp; Fields!nombreconductor.Value &amp; "   |   C.I.: " &amp; CStr(Fields!cedulaconductor.Value) &amp; "   |   Placa: " &amp; Fields!nro_placa.Value &amp; "   |   Transporte: " &amp; Fields!nombre_trasnporte.Value</Value>
                     <Style>
                       <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
                     </Style>
                   </TextRun>
                 </TextRuns>
-                <Style>
-                  <TextAlign>Center</TextAlign>
-                </Style>
+                <Style />
               </Paragraph>
             </Paragraphs>
-            <rd:DefaultName>Textbox5</rd:DefaultName>
-            <Top>8.08504cm</Top>
-            <Left>6.51782cm</Left>
-            <Height>0.6cm</Height>
-            <Width>4.14483cm</Width>
+            <Top>3.25cm</Top>
+            <Left>0.2cm</Left>
+            <Height>0.5cm</Height>
+            <Width>18.7cm</Width>
             <ZIndex>6</ZIndex>
             <Style>
               <Border>
@@ -398,67 +251,93 @@
               </Border>
               <PaddingLeft>2pt</PaddingLeft>
               <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
-          <Textbox Name="Textbox11">
+          <Textbox Name="CopiaConductor_pesos">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
             <Paragraphs>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>Pesos (Kgs)</Value>
+                    <Value>PESAJE (Kg)</Value>
                     <Style>
                       <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
                     </Style>
                   </TextRun>
                 </TextRuns>
                 <Style>
-                  <TextAlign>Left</TextAlign>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Peso Bruto: " &amp; Format(Fields!peso_bruto.Value, "N2") &amp; "    Peso Tara: " &amp; Format(Fields!peso_tara.Value, "N2") &amp; "    Peso Neto: " &amp; Format(Fields!peso_neto.Value, "N2") &amp; "    Acond.: " &amp; Format(Fields!peso_acondicionado.Value, "N2")</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>9pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Hora entrada: " &amp; Format(Fields!hora_entrada.Value, "dd/MM/yyyy hh:mm tt") &amp; "     Hora salida: " &amp; Format(Fields!hora_salida.Value, "dd/MM/yyyy hh:mm tt")</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
                 </Style>
               </Paragraph>
             </Paragraphs>
-            <rd:DefaultName>Textbox5</rd:DefaultName>
-            <Top>8.69386cm</Top>
-            <Left>0.15775cm</Left>
-            <Height>0.6cm</Height>
-            <Width>4.56375cm</Width>
+            <Top>3.9cm</Top>
+            <Left>0.2cm</Left>
+            <Height>1.7cm</Height>
+            <Width>18.7cm</Width>
             <ZIndex>7</ZIndex>
             <Style>
               <Border>
-                <Style>None</Style>
+                <Style>Solid</Style>
               </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
+              <PaddingLeft>4pt</PaddingLeft>
+              <PaddingRight>4pt</PaddingRight>
               <PaddingTop>2pt</PaddingTop>
               <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
-          <Textbox Name="Textbox12">
+          <Textbox Name="CopiaConductor_obs">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
             <Paragraphs>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>Horas</Value>
+                    <Value>="Observaciones: " &amp; Fields!observaciones.Value</Value>
                     <Style>
                       <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
                     </Style>
                   </TextRun>
                 </TextRuns>
-                <Style>
-                  <TextAlign>Left</TextAlign>
-                </Style>
+                <Style />
               </Paragraph>
             </Paragraphs>
-            <rd:DefaultName>Textbox5</rd:DefaultName>
-            <Top>8.72913cm</Top>
-            <Left>5.5124cm</Left>
-            <Height>0.6cm</Height>
-            <Width>1.38875cm</Width>
+            <Top>5.75cm</Top>
+            <Left>0.2cm</Left>
+            <Height>0.55cm</Height>
+            <Width>18.7cm</Width>
             <ZIndex>8</ZIndex>
             <Style>
               <Border>
@@ -466,66 +345,45 @@
               </Border>
               <PaddingLeft>2pt</PaddingLeft>
               <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
-          <Textbox Name="peso_bruto2">
+          <Textbox Name="CopiaConductor_firmas">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
             <Paragraphs>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>Peso Bruto: </Value>
+                    <Value>________________________                          ________________________</Value>
                     <Style>
                       <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!peso_bruto.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value xml:space="preserve"> </Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
                     </Style>
                   </TextRun>
                 </TextRuns>
-                <Style />
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
               </Paragraph>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>Peso Tara: </Value>
+                    <Value>="Operador: " &amp; Fields!usuario.Value &amp; "                                        Conductor: " &amp; Fields!nombreconductor.Value</Value>
                     <Style>
                       <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!peso_tara.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value xml:space="preserve">               </Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
                     </Style>
                   </TextRun>
                 </TextRuns>
-                <Style />
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
               </Paragraph>
             </Paragraphs>
-            <rd:DefaultName>peso_bruto</rd:DefaultName>
-            <Top>9.46141cm</Top>
-            <Left>0.15775cm</Left>
-            <Height>1.55251cm</Height>
-            <Width>5.2841cm</Width>
+            <Top>6.5cm</Top>
+            <Left>0.2cm</Left>
+            <Height>1.2cm</Height>
+            <Width>18.7cm</Width>
             <ZIndex>9</ZIndex>
             <Style>
               <Border>
@@ -533,487 +391,9 @@
               </Border>
               <PaddingLeft>2pt</PaddingLeft>
               <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
-          <Textbox Name="peso_acondicionado2">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Peso Neto:</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!peso_neto.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Acondicionado:</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!peso_acondicionado.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value />
-                    <Style />
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>peso_acondicionado</rd:DefaultName>
-            <Top>9.3997cm</Top>
-            <Left>10.74845cm</Left>
-            <Height>1.02332cm</Height>
-            <Width>5.86339cm</Width>
-            <ZIndex>10</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
-          <Line Name="Line2">
-            <Top>8.6233cm</Top>
-            <Height>0cm</Height>
-            <Width>17.11455cm</Width>
-            <ZIndex>11</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-              </Border>
-            </Style>
-          </Line>
-          <Line Name="Line3">
-            <Top>11.76385cm</Top>
-            <Height>0cm</Height>
-            <Width>17.11455cm</Width>
-            <ZIndex>12</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-              </Border>
-            </Style>
-          </Line>
-          <Textbox Name="Textbox7">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>OBSERVACIONES:</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                  <TextRun>
-                    <Value>=Fields!observaciones.Value</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style>
-                  <TextAlign>Left</TextAlign>
-                </Style>
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>Textbox5</rd:DefaultName>
-            <Top>17.60534cm</Top>
-            <Left>0.09809cm</Left>
-            <Height>0.48507cm</Height>
-            <Width>15.73324cm</Width>
-            <ZIndex>13</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
-          <Line Name="Line4">
-            <Top>18.09041cm</Top>
-            <Height>0cm</Height>
-            <Width>16.99cm</Width>
-            <ZIndex>14</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-              </Border>
-            </Style>
-          </Line>
-          <Textbox Name="Textbox8">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>DATOS ANÁLISIS</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style>
-                  <TextAlign>Center</TextAlign>
-                </Style>
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>Textbox5</rd:DefaultName>
-            <Top>11.19031cm</Top>
-            <Left>6.51782cm</Left>
-            <Height>0.6cm</Height>
-            <Width>4.14041cm</Width>
-            <ZIndex>15</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
-          <Line Name="Line11">
-            <Top>19.15452cm</Top>
-            <Left>10.4694cm</Left>
-            <Height>0cm</Height>
-            <Width>4.81952cm</Width>
-            <ZIndex>16</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-              </Border>
-            </Style>
-          </Line>
-          <Textbox Name="Textbox2">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>=Fields!usuario.Value</Value>
-                    <Style />
-                  </TextRun>
-                </TextRuns>
-                <Style>
-                  <TextAlign>Center</TextAlign>
-                </Style>
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>Textbox2</rd:DefaultName>
-            <Top>19.1898cm</Top>
-            <Left>0.46203cm</Left>
-            <Height>0.58208cm</Height>
-            <Width>4.81952cm</Width>
-            <ZIndex>17</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
-          <Textbox Name="Textbox4">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>=Fields!nombreconductor.Value</Value>
-                    <Style />
-                  </TextRun>
-                </TextRuns>
-                <Style>
-                  <TextAlign>Center</TextAlign>
-                </Style>
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>Textbox2</rd:DefaultName>
-            <Top>19.1898cm</Top>
-            <Left>10.4694cm</Left>
-            <Height>0.58208cm</Height>
-            <Width>4.81952cm</Width>
-            <ZIndex>18</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
-          <Rectangle Name="Rectangle1">
-            <ReportItems>
-              <Subreport Name="Subreport1">
-                <ReportName>analisis</ReportName>
-                <Left>0.01323cm</Left>
-                <Height>5.3476cm</Height>
-                <Width>15.67358cm</Width>
-                <Style>
-                  <Border>
-                    <Style>None</Style>
-                  </Border>
-                </Style>
-              </Subreport>
-            </ReportItems>
-            <Top>11.94024cm</Top>
-            <Left>0.14452cm</Left>
-            <Height>5.45343cm</Height>
-            <Width>15.70003cm</Width>
-            <ZIndex>19</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-            </Style>
-          </Rectangle>
-          <Rectangle Name="Rectangle2">
-            <ReportItems>
-              <Textbox Name="Textbox5">
-                <CanGrow>true</CanGrow>
-                <KeepTogether>true</KeepTogether>
-                <Paragraphs>
-                  <Paragraph>
-                    <TextRuns>
-                      <TextRun>
-                        <Value>DATOS GUIA</Value>
-                        <Style>
-                          <FontFamily>Calibri</FontFamily>
-                        </Style>
-                      </TextRun>
-                    </TextRuns>
-                    <Style>
-                      <TextAlign>Left</TextAlign>
-                    </Style>
-                  </Paragraph>
-                </Paragraphs>
-                <rd:DefaultName>Textbox5</rd:DefaultName>
-                <Top>0.22931cm</Top>
-                <Left>0.15775cm</Left>
-                <Height>0.6cm</Height>
-                <Width>2.5cm</Width>
-                <Style>
-                  <Border>
-                    <Style>None</Style>
-                  </Border>
-                  <PaddingLeft>2pt</PaddingLeft>
-                  <PaddingRight>2pt</PaddingRight>
-                  <PaddingTop>2pt</PaddingTop>
-                  <PaddingBottom>2pt</PaddingBottom>
-                </Style>
-              </Textbox>
-              <Textbox Name="Textbox13">
-                <CanGrow>true</CanGrow>
-                <KeepTogether>true</KeepTogether>
-                <Paragraphs>
-                  <Paragraph>
-                    <TextRuns>
-                      <TextRun>
-                        <Value>DATOS CONDUCTOR</Value>
-                        <Style>
-                          <FontFamily>Calibri</FontFamily>
-                        </Style>
-                      </TextRun>
-                    </TextRuns>
-                    <Style>
-                      <TextAlign>Left</TextAlign>
-                    </Style>
-                  </Paragraph>
-                </Paragraphs>
-                <rd:DefaultName>Textbox5</rd:DefaultName>
-                <Top>0.22931cm</Top>
-                <Left>8.93482cm</Left>
-                <Height>0.6cm</Height>
-                <Width>4.42265cm</Width>
-                <ZIndex>1</ZIndex>
-                <Style>
-                  <Border>
-                    <Style>None</Style>
-                  </Border>
-                  <PaddingLeft>2pt</PaddingLeft>
-                  <PaddingRight>2pt</PaddingRight>
-                  <PaddingTop>2pt</PaddingTop>
-                  <PaddingBottom>2pt</PaddingBottom>
-                </Style>
-              </Textbox>
-            </ReportItems>
-            <KeepTogether>true</KeepTogether>
-            <Top>2.4133cm</Top>
-            <Height>1.14681cm</Height>
-            <Width>17.08809cm</Width>
-            <ZIndex>20</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-              </Border>
-            </Style>
-          </Rectangle>
-          <Textbox Name="Textbox10">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>DATOS CLIENTE</Value>
-                    <Style>
-                      <FontFamily>Calibri</FontFamily>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style>
-                  <TextAlign>Center</TextAlign>
-                </Style>
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>Textbox5</rd:DefaultName>
-            <Top>6.12656cm</Top>
-            <Left>6.51782cm</Left>
-            <Height>0.6cm</Height>
-            <Width>4.14041cm</Width>
-            <ZIndex>21</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
-          <Line Name="Line5">
-            <Top>6.65601cm</Top>
-            <Height>0cm</Height>
-            <Width>17.01646cm</Width>
-            <ZIndex>22</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-              </Border>
-            </Style>
-          </Line>
-          <Line Name="Line6">
-            <Top>8.08504cm</Top>
-            <Height>0cm</Height>
-            <Width>17.08809cm</Width>
-            <ZIndex>23</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-              </Border>
-            </Style>
-          </Line>
-          <Line Name="Line7">
-            <Top>11.15503cm</Top>
-            <Left>0.02646cm</Left>
-            <Height>0cm</Height>
-            <Width>17.08809cm</Width>
-            <ZIndex>24</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-              </Border>
-            </Style>
-          </Line>
-          <Textbox Name="hora_salida">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>=Fields!hora_salida.Value</Value>
-                    <Style />
-                  </TextRun>
-                </TextRuns>
-                <Style>
-                  <TextAlign>Left</TextAlign>
-                </Style>
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>=Fields!hora_entrada.Value</Value>
-                    <Style />
-                  </TextRun>
-                </TextRuns>
-                <Style>
-                  <TextAlign>Left</TextAlign>
-                </Style>
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>hora_salida</rd:DefaultName>
-            <Top>9.47024cm</Top>
-            <Left>5.5124cm</Left>
-            <Height>0.95278cm</Height>
-            <Width>5.05965cm</Width>
-            <ZIndex>25</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
-          <Line Name="Line12">
-            <Top>19.15452cm</Top>
-            <Left>0.46203cm</Left>
-            <Height>0cm</Height>
-            <Width>4.81952cm</Width>
-            <ZIndex>26</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-              </Border>
-            </Style>
-          </Line>
-          <Textbox Name="Textbox9">
+          <Textbox Name="CopiaConductor_anul">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
             <Paragraphs>
@@ -1022,39 +402,520 @@
                   <TextRun>
                     <Value>ANULADO</Value>
                     <Style>
-                      <FontSize>15pt</FontSize>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>16pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                      <Color>Red</Color>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <Top>7.85cm</Top>
+            <Left>6.5cm</Left>
+            <Height>0.55cm</Height>
+            <Width>6cm</Width>
+            <ZIndex>10</ZIndex>
+            <Visibility>
+              <Hidden>=IIf(Fields!id_estatus.Value=6, false, true)</Hidden>
+            </Visibility>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+            </Style>
+          </Textbox>
+        </ReportItems>
+        <KeepTogether>true</KeepTogether>
+        <Top>0.4cm</Top>
+        <Left>0.7cm</Left>
+        <Height>8.6cm</Height>
+        <Width>19.1cm</Width>
+        <Style>
+          <Border>
+            <Style>Solid</Style>
+          </Border>
+        </Style>
+      </Rectangle>
+      <Line Name="LineaCorte">
+        <Top>13.3cm</Top>
+        <Left>0.7cm</Left>
+        <Height>0cm</Height>
+        <Width>19.1cm</Width>
+        <ZIndex>20</ZIndex>
+        <Style>
+          <Border>
+            <Style>Dashed</Style>
+            <Width>1.5pt</Width>
+          </Border>
+        </Style>
+      </Line>
+      <Textbox Name="TxtCorte">
+        <CanGrow>true</CanGrow>
+        <KeepTogether>true</KeepTogether>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>- - - cortar aquí - - -</Value>
+                <Style>
+                  <FontFamily>Calibri</FontFamily>
+                  <FontSize>7pt</FontSize>
+                  <Color>Gray</Color>
+                </Style>
+              </TextRun>
+            </TextRuns>
+            <Style>
+              <TextAlign>Center</TextAlign>
+            </Style>
+          </Paragraph>
+        </Paragraphs>
+        <Top>13.4cm</Top>
+        <Left>0.7cm</Left>
+        <Height>0.4cm</Height>
+        <Width>19.1cm</Width>
+        <ZIndex>21</ZIndex>
+        <Style>
+          <Border>
+            <Style>None</Style>
+          </Border>
+        </Style>
+      </Textbox>
+      <Rectangle Name="CopiaArchivo">
+        <ReportItems>
+          <Textbox Name="CopiaArchivo_lbl">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>COPIA ARCHIVO</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>10pt</FontSize>
                       <FontWeight>Bold</FontWeight>
                     </Style>
                   </TextRun>
                 </TextRuns>
-                <Style />
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
               </Paragraph>
             </Paragraphs>
-            <rd:DefaultName>Textbox9</rd:DefaultName>
-            <Top>1.54755cm</Top>
-            <Left>12.21565cm</Left>
-            <Height>0.72464cm</Height>
-            <Width>2.90314cm</Width>
-            <ZIndex>27</ZIndex>
-            <Visibility>
-              <Hidden>=iif(Fields!id_estatus.Value=6,false,true)</Hidden>
-            </Visibility>
+            <Top>0.1cm</Top>
+            <Left>0.15cm</Left>
+            <Height>0.45cm</Height>
+            <Width>18.8cm</Width>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <BackgroundColor>#E8E8E8</BackgroundColor>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>1pt</PaddingTop>
+              <PaddingBottom>1pt</PaddingBottom>
+            </Style>
+          </Textbox>
+          <Image Name="CopiaArchivo_logo">
+            <Source>Embedded</Source>
+            <Value>logorongratlimpio</Value>
+            <Sizing>FitProportional</Sizing>
+            <Top>0.65cm</Top>
+            <Left>0.2cm</Left>
+            <Height>1.2cm</Height>
+            <Width>2.4cm</Width>
+            <ZIndex>1</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+            </Style>
+          </Image>
+          <Textbox Name="CopiaArchivo_emp">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>=Fields!empresa.Value</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>12pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>=Fields!direccion_empresa.Value</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>BOLETA DE DESPACHO</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>9pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <Top>0.6cm</Top>
+            <Left>2.8cm</Left>
+            <Height>1.4cm</Height>
+            <Width>11.5cm</Width>
+            <ZIndex>2</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
               </Border>
               <PaddingLeft>2pt</PaddingLeft>
               <PaddingRight>2pt</PaddingRight>
+            </Style>
+          </Textbox>
+          <Textbox Name="CopiaArchivo_ticket">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>Ticket</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>=Fields!id.Value</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>14pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <Top>0.65cm</Top>
+            <Left>14.6cm</Left>
+            <Height>1.2cm</Height>
+            <Width>4.2cm</Width>
+            <ZIndex>3</ZIndex>
+            <Style>
+              <Border>
+                <Style>Solid</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+            </Style>
+          </Textbox>
+          <Textbox Name="CopiaArchivo_row1">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Producto: " &amp; Fields!nombre_producto.Value &amp; "   |   Guía: " &amp; Fields!nro_guia.Value &amp; "   |   Peso guía: " &amp; Format(Fields!peso_guia.Value, "N2") &amp; " Kg   |   Fecha: " &amp; Format(Fields!fecha.Value, "dd/MM/yyyy")</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style />
+              </Paragraph>
+            </Paragraphs>
+            <Top>2.15cm</Top>
+            <Left>0.2cm</Left>
+            <Height>0.5cm</Height>
+            <Width>18.7cm</Width>
+            <ZIndex>4</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+            </Style>
+          </Textbox>
+          <Textbox Name="CopiaArchivo_row2">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Cliente/Productor: " &amp; IIf(Fields!cedulaproductor.Value &gt; 0, Fields!letranatural.Value &amp; "-" &amp; CStr(Fields!cedulaproductor.Value) &amp; " " &amp; Fields!nombreproductornatural.Value, Fields!letrajuridica.Value &amp; "-" &amp; Fields!rif.Value &amp; " " &amp; Fields!nombreproductorjuridico.Value) &amp; IIf(Len(Fields!nombre_asociacion.Value) &gt; 0, "   |   Asoc.: " &amp; Fields!nombre_asociacion.Value, "")</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style />
+              </Paragraph>
+            </Paragraphs>
+            <Top>2.7cm</Top>
+            <Left>0.2cm</Left>
+            <Height>0.5cm</Height>
+            <Width>18.7cm</Width>
+            <ZIndex>5</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+            </Style>
+          </Textbox>
+          <Textbox Name="CopiaArchivo_row3">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Conductor: " &amp; Fields!nombreconductor.Value &amp; "   |   C.I.: " &amp; CStr(Fields!cedulaconductor.Value) &amp; "   |   Placa: " &amp; Fields!nro_placa.Value &amp; "   |   Transporte: " &amp; Fields!nombre_trasnporte.Value</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style />
+              </Paragraph>
+            </Paragraphs>
+            <Top>3.25cm</Top>
+            <Left>0.2cm</Left>
+            <Height>0.5cm</Height>
+            <Width>18.7cm</Width>
+            <ZIndex>6</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+            </Style>
+          </Textbox>
+          <Textbox Name="CopiaArchivo_pesos">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>PESAJE (Kg)</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Peso Bruto: " &amp; Format(Fields!peso_bruto.Value, "N2") &amp; "    Peso Tara: " &amp; Format(Fields!peso_tara.Value, "N2") &amp; "    Peso Neto: " &amp; Format(Fields!peso_neto.Value, "N2") &amp; "    Acond.: " &amp; Format(Fields!peso_acondicionado.Value, "N2")</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>9pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Hora entrada: " &amp; Format(Fields!hora_entrada.Value, "dd/MM/yyyy hh:mm tt") &amp; "     Hora salida: " &amp; Format(Fields!hora_salida.Value, "dd/MM/yyyy hh:mm tt")</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <Top>3.9cm</Top>
+            <Left>0.2cm</Left>
+            <Height>1.7cm</Height>
+            <Width>18.7cm</Width>
+            <ZIndex>7</ZIndex>
+            <Style>
+              <Border>
+                <Style>Solid</Style>
+              </Border>
+              <PaddingLeft>4pt</PaddingLeft>
+              <PaddingRight>4pt</PaddingRight>
               <PaddingTop>2pt</PaddingTop>
               <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
+          <Textbox Name="CopiaArchivo_obs">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Observaciones: " &amp; Fields!observaciones.Value</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style />
+              </Paragraph>
+            </Paragraphs>
+            <Top>5.75cm</Top>
+            <Left>0.2cm</Left>
+            <Height>0.55cm</Height>
+            <Width>18.7cm</Width>
+            <ZIndex>8</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+            </Style>
+          </Textbox>
+          <Textbox Name="CopiaArchivo_firmas">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>________________________                          ________________________</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Operador: " &amp; Fields!usuario.Value &amp; "                                        Conductor: " &amp; Fields!nombreconductor.Value</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <Top>6.5cm</Top>
+            <Left>0.2cm</Left>
+            <Height>1.2cm</Height>
+            <Width>18.7cm</Width>
+            <ZIndex>9</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+            </Style>
+          </Textbox>
+          <Textbox Name="CopiaArchivo_anul">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>ANULADO</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>16pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                      <Color>Red</Color>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <Top>7.85cm</Top>
+            <Left>6.5cm</Left>
+            <Height>0.55cm</Height>
+            <Width>6cm</Width>
+            <ZIndex>10</ZIndex>
+            <Visibility>
+              <Hidden>=IIf(Fields!id_estatus.Value=6, false, true)</Hidden>
+            </Visibility>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+            </Style>
+          </Textbox>
         </ReportItems>
         <KeepTogether>true</KeepTogether>
-        <Top>1.02052cm</Top>
-        <Left>1.68165cm</Left>
-        <Height>20.63647cm</Height>
-        <Width>17.11455cm</Width>
+        <Top>14.0cm</Top>
+        <Left>0.7cm</Left>
+        <Height>8.6cm</Height>
+        <Width>19.1cm</Width>
         <Style>
           <Border>
             <Style>Solid</Style>
@@ -1062,10 +923,14 @@
         </Style>
       </Rectangle>
     </ReportItems>
-    <Height>8.64096in</Height>
-    <Style />
+    <Height>23.2cm</Height>
+    <Style>
+      <Border>
+        <Style>None</Style>
+      </Border>
+    </Style>
   </Body>
-  <Width>8.25884in</Width>
+  <Width>21.0cm</Width>
   <Page>
     <PageHeight>27.94cm</PageHeight>
     <PageWidth>21.59cm</PageWidth>

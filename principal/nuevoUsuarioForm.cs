@@ -148,7 +148,14 @@ namespace principal
                 DataTable perfilDT = ud.buscarPerfil();
                 if (perfilDT.Rows.Count > 0)
                 {
-                    cbPerfil.DataSource = perfilDT;
+                    // Solo Administrador (1) y Romana (2).
+                    DataView vista = new DataView(perfilDT);
+                    vista.RowFilter = "id = 1 OR id = 2";
+                    DataTable filtrado = vista.ToTable();
+                    if (filtrado.Rows.Count == 0)
+                        filtrado = perfilDT;
+
+                    cbPerfil.DataSource = filtrado;
                     cbPerfil.DisplayMember = "nombre";
                     cbPerfil.ValueMember = "id";
                 }

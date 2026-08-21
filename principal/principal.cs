@@ -94,55 +94,65 @@ namespace principal
         {
             ApplyMainShellTheme();
 
-            var lg = new loginForm();
-            lg.ShowDialog();
-            if (lg.Logeo)
-            {
-                _usuario = lg.usuario;
-                _idusuario = lg.IdUsuario;
-                _idPerfil = lg.id_perfil;
-                lbUsuario.Text = "Usuario: " + _usuario;
-                this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
-            }
-            else
+            if (!IniciarSesion())
             {
                 Application.Exit();
                 return;
             }
-            supevisores = (_idPerfil == 1 || _idPerfil == 5 || _idPerfil == 6);
-            if (supevisores)
-            {
+        }
 
-                verToolStripMenuItem.Visible = true;
-                btnInventario.Enabled = true;
-                this.usuariosToolStripMenuItem1.Visible = true;
-            }
-            if (supevisores || _idPerfil == 4)
-            {
-                verToolStripMenuItem.Visible = true;
-                nuevoToolStripMenuItem1.Visible = true;
-                nuevoToolStripMenuItem2.Visible = true;
-            }
-            if (_idPerfil == 7)
-            {
-                verToolStripMenuItem.Visible = false;
-                nuevoToolStripMenuItem1.Visible = false;
-                nuevoToolStripMenuItem2.Visible = false;
-                mantenimientoToolStripMenuItem.Visible = false;
-                tsPrincipal.Visible = false;
-                btnRecepcion.Enabled = false;
-                btnDespacho.Enabled = false;
-            }
+        private bool IniciarSesion()
+        {
+            var lg = new loginForm();
+            lg.ShowDialog(this);
+            if (!lg.Logeo)
+                return false;
+
+            AplicarSesion(lg.usuario, lg.IdUsuario, lg.id_perfil);
+            return true;
+        }
+
+        private void AplicarSesion(string usuario, int idUsuario, int idPerfil)
+        {
+            _usuario = usuario;
+            _idusuario = idUsuario;
+            _idPerfil = idPerfil;
+            lbUsuario.Text = "Usuario: " + _usuario;
+            this.WindowState = FormWindowState.Maximized;
+
+            Base.id_perfil = _idPerfil;
+            Base.id_usuario = _idusuario;
+            Base.usuario = _usuario;
+            supevisores = Base.EsAdministrador();
 
             AplicarMenuOperativo();
+            AplicarPermisosPorPerfil();
+        }
+
+        private void CerrarSesionYRelogear()
+        {
+            foreach (Form hijo in MdiChildren.ToArray())
+            {
+                hijo.Close();
+            }
+
+            _usuario = string.Empty;
+            _idusuario = 0;
+            _idPerfil = 0;
+            supevisores = false;
+            Base.id_perfil = 0;
+            Base.id_usuario = 0;
+            Base.usuario = string.Empty;
+            lbUsuario.Text = "Usuario:";
+
+            if (!IniciarSesion())
+                Application.Exit();
         }
 
         private void AplicarMenuOperativo()
         {
             puertoRomanaToolStripMenuItem.Visible = false;
             parametrosGeneralesToolStripMenuItem.Visible = false;
-            usuariosToolStripMenuItem1.Visible = true;
-            configuracionToolStripMenuItem.Visible = true;
 
             productoTerminadoToolStripMenuItem.Visible = false;
             mantenimientToolStripMenuItem.Visible = false;
@@ -157,6 +167,54 @@ namespace principal
             buscarToolStripMenuItem.Text = "Listado";
             nuevoToolStripMenuItem2.Text = "Captura";
             buscarToolStripMenuItem1.Text = "Listado";
+        }
+
+        private void AplicarPermisosPorPerfil()
+        {
+            bool esAdmin = Base.EsAdministrador();
+            bool esRomana = Base.EsRomana();
+
+            // Recepción / Despacho: ambos perfiles
+            btnRecepcion.Enabled = esAdmin || esRomana;
+            btnDespacho.Enabled = esAdmin || esRomana;
+            btnRecepcion.Visible = true;
+            btnDespacho.Visible = true;
+            recepciónToolStripMenuItem.Visible = esAdmin || esRomana;
+            despachoToolStripMenuItem1.Visible = esAdmin || esRomana;
+            nuevoToolStripMenuItem1.Visible = esAdmin || esRomana;
+            buscarToolStripMenuItem.Visible = esAdmin || esRomana;
+            nuevoToolStripMenuItem2.Visible = esAdmin || esRomana;
+            buscarToolStripMenuItem1.Visible = esAdmin || esRomana;
+
+            // Solo administrador
+            btnInventario.Enabled = esAdmin;
+            btnInventario.Visible = esAdmin;
+            verToolStripMenuItem.Visible = esAdmin;
+            inventarioToolStripMenuItem.Visible = esAdmin;
+            inventarioTotalToolStripMenuItem.Visible = esAdmin;
+            clientesToolStripMenuItem.Visible = esAdmin;
+            productosToolStripMenuItem.Visible = esAdmin;
+            conductoresToolStripMenuItem.Visible = esAdmin;
+            silosToolStripMenuItem.Visible = esAdmin;
+            configuracionToolStripMenuItem.Visible = esAdmin;
+            usuariosToolStripMenuItem1.Visible = esAdmin;
+            mantenimientoToolStripMenuItem.Visible = esAdmin;
+            inventarioToolStripMenuItem1.Visible = false;
+            tsPrincipal.Visible = esAdmin || esRomana;
+
+            // Romana: Datos Generales solo con Recepción/Despacho
+            if (esRomana && !esAdmin)
+            {
+                configuracionToolStripMenuItem.Visible = false;
+                inventarioToolStripMenuItem.Visible = false;
+                clientesToolStripMenuItem.Visible = false;
+                productosToolStripMenuItem.Visible = false;
+                conductoresToolStripMenuItem.Visible = false;
+                silosToolStripMenuItem.Visible = false;
+                productoTerminadoToolStripMenuItem.Visible = false;
+                asociacionesToolStripMenuItem.Visible = false;
+                transporteToolStripMenuItem.Visible = false;
+            }
         }
 
         private void ApplyMainShellTheme()
@@ -274,7 +332,7 @@ namespace principal
 
         private void salirToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            CerrarSesionYRelogear();
         }
 
         private void nuevoToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -456,7 +514,7 @@ namespace principal
 
         private void btnsalir_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            CerrarSesionYRelogear();
         }
 
         private void conductoresToolStripMenuItem_Click(object sender, EventArgs e)

@@ -25,12 +25,17 @@ namespace principal
         }
         public static bool administrador()
         {
-            if (Base.id_perfil == 1)
-                return true;
-            else
-                return false;
+            return Base.id_perfil == 1;
+        }
 
+        public static bool EsAdministrador()
+        {
+            return administrador();
+        }
 
+        public static bool EsRomana()
+        {
+            return Base.id_perfil == 2;
         }
         public static void  msjError(string msj)
         {

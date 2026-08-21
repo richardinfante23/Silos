@@ -24,7 +24,8 @@ namespace principal
 
         private void btnCancelar_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            Logeo = false;
+            Close();
         }
         private bool ConexionWs()
         {
@@ -64,7 +65,6 @@ namespace principal
                 catch (Exception ex)
                 {
                     Base.msjErrorOperacion(ex, "iniciar sesión");
-                    Application.Exit();
                 }
                
             
