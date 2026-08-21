@@ -46,6 +46,9 @@
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.inventarioToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.configuracionTasaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparatorTasa = new System.Windows.Forms.ToolStripSeparator();
+            this.reporteCostosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clientesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pruductorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.juridicoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -90,6 +93,7 @@
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.lbUsuario = new System.Windows.Forms.Label();
             this.btnsalir = new System.Windows.Forms.Button();
+            this.btnConfigTasa = new System.Windows.Forms.Button();
             this.btnInventario = new System.Windows.Forms.Button();
             this.btnDespacho = new System.Windows.Forms.Button();
             this.btnRecepcion = new System.Windows.Forms.Button();
@@ -129,6 +133,9 @@
             this.toolStripSeparator3,
             this.inventarioToolStripMenuItem,
             this.toolStripSeparator4,
+            this.configuracionTasaToolStripMenuItem,
+            this.toolStripSeparatorTasa,
+            this.reporteCostosToolStripMenuItem,
             this.clientesToolStripMenuItem,
             this.toolStripSeparator9,
             this.productoTerminadoToolStripMenuItem,
@@ -248,6 +255,25 @@
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
             this.toolStripSeparator4.Size = new System.Drawing.Size(179, 6);
+            // 
+            // configuracionTasaToolStripMenuItem
+            // 
+            this.configuracionTasaToolStripMenuItem.Name = "configuracionTasaToolStripMenuItem";
+            this.configuracionTasaToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.configuracionTasaToolStripMenuItem.Text = "Configuración Tasa";
+            this.configuracionTasaToolStripMenuItem.Click += new System.EventHandler(this.configuracionTasaToolStripMenuItem_Click);
+            // 
+            // toolStripSeparatorTasa
+            // 
+            this.toolStripSeparatorTasa.Name = "toolStripSeparatorTasa";
+            this.toolStripSeparatorTasa.Size = new System.Drawing.Size(179, 6);
+            // 
+            // reporteCostosToolStripMenuItem
+            // 
+            this.reporteCostosToolStripMenuItem.Name = "reporteCostosToolStripMenuItem";
+            this.reporteCostosToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.reporteCostosToolStripMenuItem.Text = "Reporte Costos";
+            this.reporteCostosToolStripMenuItem.Click += new System.EventHandler(this.reporteCostosToolStripMenuItem_Click);
             // 
             // clientesToolStripMenuItem
             // 
@@ -581,13 +607,26 @@
             // 
             this.btnsalir.FlatAppearance.BorderSize = 0;
             this.btnsalir.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnsalir.Location = new System.Drawing.Point(12, 320);
+            this.btnsalir.Location = new System.Drawing.Point(12, 380);
             this.btnsalir.Name = "btnsalir";
             this.btnsalir.Size = new System.Drawing.Size(136, 44);
-            this.btnsalir.TabIndex = 4;
+            this.btnsalir.TabIndex = 5;
             this.btnsalir.Text = "Salir";
             this.btnsalir.UseVisualStyleBackColor = false;
             this.btnsalir.Click += new System.EventHandler(this.btnsalir_Click);
+            // 
+            // btnConfigTasa
+            // 
+            this.btnConfigTasa.Enabled = false;
+            this.btnConfigTasa.FlatAppearance.BorderSize = 0;
+            this.btnConfigTasa.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnConfigTasa.Location = new System.Drawing.Point(12, 320);
+            this.btnConfigTasa.Name = "btnConfigTasa";
+            this.btnConfigTasa.Size = new System.Drawing.Size(136, 44);
+            this.btnConfigTasa.TabIndex = 4;
+            this.btnConfigTasa.Text = "Config. Tasa";
+            this.btnConfigTasa.UseVisualStyleBackColor = false;
+            this.btnConfigTasa.Click += new System.EventHandler(this.btnConfigTasa_Click);
             // 
             // btnInventario
             // 
@@ -630,6 +669,7 @@
             // 
             this.pizquierda.BackColor = System.Drawing.Color.FromArgb(22, 48, 72);
             this.pizquierda.Controls.Add(this.btnsalir);
+            this.pizquierda.Controls.Add(this.btnConfigTasa);
             this.pizquierda.Controls.Add(this.btnRecepcion);
             this.pizquierda.Controls.Add(this.btnInventario);
             this.pizquierda.Controls.Add(this.btnDespacho);
@@ -689,6 +729,7 @@
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.Label lbUsuario;
         private System.Windows.Forms.Button btnInventario;
+        private System.Windows.Forms.Button btnConfigTasa;
         private System.Windows.Forms.Button btnDespacho;
         private System.Windows.Forms.Button btnRecepcion;
         private System.Windows.Forms.ToolStripMenuItem salirToolStripMenuItem;
@@ -699,6 +740,9 @@
         private System.Windows.Forms.ToolStripMenuItem nuevoToolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem buscarToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem inventarioToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem configuracionTasaToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparatorTasa;
+        private System.Windows.Forms.ToolStripMenuItem reporteCostosToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem productoTerminadoToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem configuracionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem puertoRomanaToolStripMenuItem;

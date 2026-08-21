@@ -53,6 +53,15 @@ namespace principal
         public string impureza { get; set; }
         public string gdt { get; set; }
          public string nombresilo { get; set; }
+
+        /// <summary>Precio USD por tonelada (tasa del día/producto).</summary>
+        public decimal precio_tonelada_usd { get; set; }
+        /// <summary>Valor del dólar en Bs (tasa del día/producto).</summary>
+        public decimal tasa_dolar_bs { get; set; }
+        /// <summary>Importe total en USD según peso (toneladas × precio).</summary>
+        public decimal total_usd { get; set; }
+        /// <summary>Importe total en Bs (total_usd × tasa_dolar_bs).</summary>
+        public decimal total_bs { get; set; }
        
         public List<analisis> listaAnalisis = new List<analisis>();
         

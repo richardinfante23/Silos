@@ -189,9 +189,14 @@ namespace principal
             // Solo administrador
             btnInventario.Enabled = esAdmin;
             btnInventario.Visible = esAdmin;
+            btnConfigTasa.Enabled = esAdmin;
+            btnConfigTasa.Visible = esAdmin;
             verToolStripMenuItem.Visible = esAdmin;
             inventarioToolStripMenuItem.Visible = esAdmin;
             inventarioTotalToolStripMenuItem.Visible = esAdmin;
+            configuracionTasaToolStripMenuItem.Visible = esAdmin;
+            toolStripSeparatorTasa.Visible = esAdmin;
+            reporteCostosToolStripMenuItem.Visible = esAdmin;
             clientesToolStripMenuItem.Visible = esAdmin;
             productosToolStripMenuItem.Visible = esAdmin;
             conductoresToolStripMenuItem.Visible = esAdmin;
@@ -207,6 +212,9 @@ namespace principal
             {
                 configuracionToolStripMenuItem.Visible = false;
                 inventarioToolStripMenuItem.Visible = false;
+                configuracionTasaToolStripMenuItem.Visible = false;
+                toolStripSeparatorTasa.Visible = false;
+                reporteCostosToolStripMenuItem.Visible = false;
                 clientesToolStripMenuItem.Visible = false;
                 productosToolStripMenuItem.Visible = false;
                 conductoresToolStripMenuItem.Visible = false;
@@ -252,6 +260,7 @@ namespace principal
             UiTheme.StyleNavButton(btnRecepcion);
             UiTheme.StyleNavButton(btnDespacho);
             UiTheme.StyleNavButton(btnInventario);
+            UiTheme.StyleNavButton(btnConfigTasa);
             UiTheme.StyleNavButton(btnsalir);
             btnsalir.ForeColor = Color.FromArgb(255, 210, 210);
 
@@ -327,6 +336,77 @@ namespace principal
             {
 
                 throw new Exception("Ha ocurrido abriendo inventario. Error Contacte al Administrador del Sistema", ex);
+            }
+        }
+
+        private void btnConfigTasa_Click(object sender, EventArgs e)
+        {
+            AbrirConfiguracionTasa();
+        }
+
+        private void configuracionTasaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AbrirConfiguracionTasa();
+        }
+
+        private void AbrirConfiguracionTasa()
+        {
+            try
+            {
+                Cursor = Cursors.WaitCursor;
+                foreach (Form hijo in MdiChildren)
+                {
+                    if (hijo is tasaForm)
+                    {
+                        hijo.Activate();
+                        Cursor = Cursors.Default;
+                        return;
+                    }
+                }
+
+                tasaForm form = new tasaForm();
+                form.MdiParent = this;
+                form.Show();
+                form.Activate();
+                Cursor = Cursors.Default;
+            }
+            catch (Exception ex)
+            {
+                Cursor = Cursors.Default;
+                Base.msjErrorOperacion(ex, "abrir Configuración Tasa");
+            }
+        }
+
+        private void reporteCostosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AbrirReporteCostos();
+        }
+
+        private void AbrirReporteCostos()
+        {
+            try
+            {
+                Cursor = Cursors.WaitCursor;
+                foreach (Form hijo in MdiChildren)
+                {
+                    if (hijo is reporteCostosForm)
+                    {
+                        hijo.Activate();
+                        Cursor = Cursors.Default;
+                        return;
+                    }
+                }
+
+                reporteCostosForm form = new reporteCostosForm();
+                form.MdiParent = this;
+                form.Show();
+                form.Activate();
+                Cursor = Cursors.Default;
+            }
+            catch (Exception ex)
+            {
+                Cursor = Cursors.Default;
+                Base.msjErrorOperacion(ex, "abrir Reporte de Costos");
             }
         }
 

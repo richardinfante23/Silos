@@ -368,6 +368,70 @@ namespace principal
             return ValidacionFormulario.validar(this.Controls,etiqueta);
         }
 
+        private bool ValidarTasaDiariaProducto(DateTime fecha, int idProducto)
+        {
+            try
+            {
+                if (idProducto <= 0)
+                {
+                    Base.msjAdvertencia("Seleccione un producto.");
+                    return false;
+                }
+
+                var tasa = new tasaData();
+                if (!tasa.ExisteTasa(fecha.Date, idProducto))
+                {
+                    Base.msjAdvertencia(
+                        "No hay tasa configurada para el producto seleccionado en la fecha "
+                        + fecha.ToString("dd/MM/yyyy")
+                        + ". Configure la tasa del día antes de registrar la recepción.");
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Base.msjErrorOperacion(ex, "validar la tasa del día");
+                return false;
+            }
+        }
+
+        private void AplicarPreciosTasa(recepcionBO recepcion)
+        {
+            if (recepcion == null) return;
+
+            recepcion.precio_tonelada_usd = 0;
+            recepcion.tasa_dolar_bs = 0;
+            recepcion.total_usd = 0;
+            recepcion.total_bs = 0;
+
+            if (recepcion.id_producto <= 0)
+                return;
+
+            try
+            {
+                DataTable dt = new tasaData().buscarPorFechaProducto(recepcion.fecha.Date, recepcion.id_producto);
+                if (dt == null || dt.Rows.Count == 0)
+                    return;
+
+                DataRow fila = dt.Rows[0];
+                decimal precioUsd = Convert.ToDecimal(fila["precio_tonelada_usd"]);
+                decimal tasaBs = Convert.ToDecimal(fila["tasa_dolar_bs"]);
+                decimal pesoKg = recepcion.peso_acondicionado > 0
+                    ? recepcion.peso_acondicionado
+                    : recepcion.peso_neto;
+                decimal toneladas = pesoKg / 1000m;
+
+                recepcion.precio_tonelada_usd = precioUsd;
+                recepcion.tasa_dolar_bs = tasaBs;
+                recepcion.total_usd = Math.Round(toneladas * precioUsd, 2);
+                recepcion.total_bs = Math.Round(recepcion.total_usd * tasaBs, 2);
+            }
+            catch
+            {
+                // Si falla la consulta, la boleta se imprime sin montos.
+            }
+        }
 
         public void soloNumeros_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -853,6 +917,9 @@ namespace principal
                 objRecepcion.nro_placa = txtPlaca.Text;
                 objRecepcion.resumen = false;
                 objRecepcion.id_producto = Convert.ToInt32(((System.Data.DataRowView)(cbProducto.SelectedItem)).Row.ItemArray[0]);
+
+                if (!ValidarTasaDiariaProducto(objRecepcion.fecha, objRecepcion.id_producto))
+                    return;
 
                 objRecepcion.nro_guia =txtNroguia.Text;
                 objRecepcion.peso_guia = !string.IsNullOrWhiteSpace(txtPesoGuia.Text) ?  Convert.ToDecimal(txtPesoGuia.Text) :0;
@@ -1344,6 +1411,7 @@ namespace principal
                                  objRecepcionR.nombresilo =silosDT.Select("id=" + objRecepcionR.id_silos).Count() > 0 ? silosDT.Select("id=" + objRecepcionR.id_silos)[0].ItemArray[1].ToString() : "S/S";
                                 //objRecepcionR.nombresilo = ((System.Data.DataRowView)(cbSilos.SelectedItem)).Row.ItemArray[1].ToString();
                             }
+                            AplicarPreciosTasa(objRecepcionR);
                             return objRecepcionR;
                          
 
@@ -1929,6 +1997,7 @@ namespace principal
             objRecepcion.direccion_empresa = direccionempresa;
             objRecepcion.peso_merma = objRecepcion.peso_guia==0?0: objRecepcion.peso_neto-objRecepcion.peso_guia ;
             objRecepcion.usuario = nombre_Usuario;
+            AplicarPreciosTasa(objRecepcion);
             reporteForm rf = new reporteForm(objRecepcion.listaAnalisis);
             rf.listaAnalisis = objRecepcion.listaAnalisis;
             List<recepcionBO> listaRecepcion = new List<recepcionBO>();

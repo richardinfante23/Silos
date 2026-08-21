@@ -291,6 +291,22 @@
     <Compile Include="Tercero_ArticulosDatacs.cs" />
     <Compile Include="transporte.cs" />
     <Compile Include="asiciasionesData.cs" />
+    <Compile Include="productorPickerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="reporteCostosForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="reporteCostosForm.Designer.cs">
+      <DependentUpon>reporteCostosForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="tasaData.cs" />
+    <Compile Include="tasaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="tasaForm.Designer.cs">
+      <DependentUpon>tasaForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="transporteForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -443,6 +459,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ResumenDespacho.rdlc" />
     <EmbeddedResource Include="Inventario.rdlc" />
+    <EmbeddedResource Include="ReporteCostos.rdlc" />
     <EmbeddedResource Include="ResumenRecepcion.rdlc" />
     <EmbeddedResource Include="SeccionesForm.resx">
       <DependentUpon>SeccionesForm.cs</DependentUpon>

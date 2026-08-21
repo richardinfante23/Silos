@@ -216,7 +216,10 @@ namespace principal
                 || form is nuevoUsuarioForm
                 || form is personaJuridicaForm
                 || form is asociacionForm
-                || form is conductoresForm;
+                || form is conductoresForm
+                || form is tasaForm
+                || form is reporteCostosForm
+                || form is productorPickerForm;
         }
 
         public static void StylePrimaryButton(Button button)

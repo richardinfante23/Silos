@@ -121,7 +121,10 @@ namespace principal
 
                 bool active = _filters.ContainsKey(col.Name) && !string.IsNullOrWhiteSpace(_filters[col.Name]);
                 col.HeaderText = active ? (baseText + " ▼") : baseText;
+                col.HeaderCell.Style.BackColor = UiTheme.Primary;
+                col.HeaderCell.Style.SelectionBackColor = UiTheme.Primary;
                 col.HeaderCell.Style.ForeColor = active ? UiTheme.Accent : Color.White;
+                col.HeaderCell.Style.SelectionForeColor = Color.White;
                 col.HeaderCell.ToolTipText = active
                     ? ("Filtro: " + _filters[col.Name] + "  |  Clic derecho para limpiar")
                     : "Clic para filtrar esta columna";

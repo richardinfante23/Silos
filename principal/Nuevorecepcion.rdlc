@@ -301,8 +301,23 @@
                   <TextAlign>Center</TextAlign>
                 </Style>
               </Paragraph>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Precio $/Ton: " &amp; Format(Fields!precio_tonelada_usd.Value, "N2") &amp; "    Precio Bs/$: " &amp; Format(Fields!tasa_dolar_bs.Value, "N2") &amp; "    Total $: " &amp; Format(Fields!total_usd.Value, "N2") &amp; "    Total Bs: " &amp; Format(Fields!total_bs.Value, "N2")</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
             </Paragraphs>
-            <Top>3.9cm</Top>
+            <Top>3.85cm</Top>
             <Left>0.2cm</Left>
             <Height>1.7cm</Height>
             <Width>18.7cm</Width>
@@ -311,10 +326,10 @@
               <Border>
                 <Style>Solid</Style>
               </Border>
-              <PaddingLeft>4pt</PaddingLeft>
-              <PaddingRight>4pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
+              <PaddingLeft>3pt</PaddingLeft>
+              <PaddingRight>3pt</PaddingRight>
+              <PaddingTop>1pt</PaddingTop>
+              <PaddingBottom>1pt</PaddingBottom>
             </Style>
           </Textbox>
           <Textbox Name="CopiaConductor_obs">
@@ -334,9 +349,9 @@
                 <Style />
               </Paragraph>
             </Paragraphs>
-            <Top>5.75cm</Top>
+            <Top>5.65cm</Top>
             <Left>0.2cm</Left>
-            <Height>0.55cm</Height>
+            <Height>0.45cm</Height>
             <Width>18.7cm</Width>
             <ZIndex>8</ZIndex>
             <Style>
@@ -380,7 +395,7 @@
                 </Style>
               </Paragraph>
             </Paragraphs>
-            <Top>6.5cm</Top>
+            <Top>6.2cm</Top>
             <Left>0.2cm</Left>
             <Height>1.2cm</Height>
             <Width>18.7cm</Width>
@@ -783,8 +798,23 @@
                   <TextAlign>Center</TextAlign>
                 </Style>
               </Paragraph>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Precio $/Ton: " &amp; Format(Fields!precio_tonelada_usd.Value, "N2") &amp; "    Precio Bs/$: " &amp; Format(Fields!tasa_dolar_bs.Value, "N2") &amp; "    Total $: " &amp; Format(Fields!total_usd.Value, "N2") &amp; "    Total Bs: " &amp; Format(Fields!total_bs.Value, "N2")</Value>
+                    <Style>
+                      <FontFamily>Calibri</FontFamily>
+                      <FontSize>8pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
             </Paragraphs>
-            <Top>3.9cm</Top>
+            <Top>3.85cm</Top>
             <Left>0.2cm</Left>
             <Height>1.7cm</Height>
             <Width>18.7cm</Width>
@@ -793,10 +823,10 @@
               <Border>
                 <Style>Solid</Style>
               </Border>
-              <PaddingLeft>4pt</PaddingLeft>
-              <PaddingRight>4pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
+              <PaddingLeft>3pt</PaddingLeft>
+              <PaddingRight>3pt</PaddingRight>
+              <PaddingTop>1pt</PaddingTop>
+              <PaddingBottom>1pt</PaddingBottom>
             </Style>
           </Textbox>
           <Textbox Name="CopiaArchivo_obs">
@@ -816,9 +846,9 @@
                 <Style />
               </Paragraph>
             </Paragraphs>
-            <Top>5.75cm</Top>
+            <Top>5.65cm</Top>
             <Left>0.2cm</Left>
-            <Height>0.55cm</Height>
+            <Height>0.45cm</Height>
             <Width>18.7cm</Width>
             <ZIndex>8</ZIndex>
             <Style>
@@ -862,7 +892,7 @@
                 </Style>
               </Paragraph>
             </Paragraphs>
-            <Top>6.5cm</Top>
+            <Top>6.2cm</Top>
             <Left>0.2cm</Left>
             <Height>1.2cm</Height>
             <Width>18.7cm</Width>
@@ -1090,6 +1120,22 @@
         </Field>
         <Field Name="peso_tara">
           <DataField>peso_tara</DataField>
+          <rd:TypeName>System.Decimal</rd:TypeName>
+        </Field>
+        <Field Name="precio_tonelada_usd">
+          <DataField>precio_tonelada_usd</DataField>
+          <rd:TypeName>System.Decimal</rd:TypeName>
+        </Field>
+        <Field Name="tasa_dolar_bs">
+          <DataField>tasa_dolar_bs</DataField>
+          <rd:TypeName>System.Decimal</rd:TypeName>
+        </Field>
+        <Field Name="total_usd">
+          <DataField>total_usd</DataField>
+          <rd:TypeName>System.Decimal</rd:TypeName>
+        </Field>
+        <Field Name="total_bs">
+          <DataField>total_bs</DataField>
           <rd:TypeName>System.Decimal</rd:TypeName>
         </Field>
         <Field Name="resumen">
