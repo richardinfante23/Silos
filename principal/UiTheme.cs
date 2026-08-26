@@ -219,7 +219,9 @@ namespace principal
                 || form is conductoresForm
                 || form is tasaForm
                 || form is reporteCostosForm
-                || form is productorPickerForm;
+                || form is productorPickerForm
+                || form is conexionForm
+                || form is romanaMonitorForm;
         }
 
         public static void StylePrimaryButton(Button button)

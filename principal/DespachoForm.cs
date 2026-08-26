@@ -534,6 +534,7 @@ namespace principal
                 txtDIProductor.Enabled = true;
                 txtNombreProductor.Enabled = true;
                 btnBuscarProductor.Text = "Buscar";
+                EstilarBotonCampo(btnBuscarProductor, "Buscar");
                 txtDIProductor.Text = string.Empty;
                 txtNombreProductor.Text = string.Empty;
                 objRecepcion.id_destino = 0;
@@ -541,6 +542,40 @@ namespace principal
                 cbLetras.Enabled = true;
                 return;
             }
+
+            // Sin cédula/RIF: listado de clientes (igual que productor en recepción)
+            if (string.IsNullOrWhiteSpace(txtDIProductor.Text))
+            {
+                try
+                {
+                    string tipo = null;
+                    if (rbTipoNatural.Checked)
+                        tipo = "Natural";
+                    else if (rbJuridica.Checked)
+                        tipo = "Jurídico";
+
+                    using (var picker = new productorPickerForm(tipo, CatalogoPersonaModo.Cliente))
+                    {
+                        if (picker.ShowDialog(this) == DialogResult.OK && picker.Seleccionado)
+                            AplicarClienteDesdePicker(picker);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Base.msjErrorOperacion(ex, "listar clientes");
+                }
+                return;
+            }
+
+            if (!rbTipoNatural.Checked && !rbJuridica.Checked)
+            {
+                UiDialog.Show("Debe seleccionar Persona Natural o Persona Jurídica antes de buscar.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                rbTipoNatural.Checked = true;
+                rbJuridica.Checked = false;
+                rbTipoNatural_CheckedChanged(rbTipoNatural, EventArgs.Empty);
+                return;
+            }
+
             if (!validateRegistrarOrEditar("validarcedula"))
                 return;
 
@@ -556,6 +591,67 @@ namespace principal
             {
                 throw new Exception("Ha ocurrido un buscando productor. Error Contacte al Administrador del Sistema", ex);
 
+            }
+        }
+
+        private void AplicarClienteDesdePicker(productorPickerForm picker)
+        {
+            if (picker == null || !picker.Seleccionado)
+                return;
+
+            bool esNatural = picker.IdNatural > 0;
+
+            this.rbTipoNatural.CheckedChanged -= new System.EventHandler(this.rbTipoNatural_CheckedChanged);
+            this.rbJuridica.CheckedChanged -= new System.EventHandler(this.rbJuridica_CheckedChanged);
+            try
+            {
+                rbTipoNatural.Checked = esNatural;
+                rbJuridica.Checked = !esNatural;
+
+                listaLetras = new List<string>();
+                if (esNatural)
+                    listaLetras.AddRange(letrasNaturales.Split(','));
+                else
+                    listaLetras.AddRange(letrasJuridicas.Split(','));
+
+                cbLetras.DataSource = new DataTable();
+                cbLetras.DataSource = listaLetras;
+
+                if (!string.IsNullOrWhiteSpace(picker.Letra))
+                {
+                    string letra = picker.Letra.Trim();
+                    string match = listaLetras.Find(x => string.Equals(x.Trim(), letra, StringComparison.OrdinalIgnoreCase));
+                    if (match != null)
+                        cbLetras.SelectedItem = match;
+                }
+
+                if (esNatural)
+                {
+                    lbEjemploletraConductor.Text = "Ejem: V";
+                    lbEjemploCedulaCondcutor.Text = "Ejem: 12345678";
+                    objRecepcion.id_destino_natural = picker.IdNatural;
+                    objRecepcion.id_destino = 0;
+                }
+                else
+                {
+                    lbEjemploletraConductor.Text = "Ejem: G";
+                    lbEjemploCedulaCondcutor.Text = "Ejem: 123456789";
+                    objRecepcion.id_destino = picker.IdJuridico;
+                    objRecepcion.id_destino_natural = 0;
+                }
+
+                txtDIProductor.Text = picker.Documento ?? string.Empty;
+                txtNombreProductor.Text = picker.Nombre ?? string.Empty;
+                txtDIProductor.Enabled = false;
+                txtNombreProductor.Enabled = false;
+                cbLetras.Enabled = false;
+                btnBuscarProductor.Text = "Cambiar";
+                EstilarBotonCampo(btnBuscarProductor, "Cambiar");
+            }
+            finally
+            {
+                this.rbTipoNatural.CheckedChanged += new System.EventHandler(this.rbTipoNatural_CheckedChanged);
+                this.rbJuridica.CheckedChanged += new System.EventHandler(this.rbJuridica_CheckedChanged);
             }
         }
         private void productorJuridico()
@@ -2033,69 +2129,41 @@ namespace principal
             {
                 if (!conexionSerial())
                     return;
-                string Recibidos = string.Empty;
-                string peso = string.Empty;
-
-                if (spRomana.IsOpen)
-                {
-                    spRomana.WriteLine("R");
-                    Recibidos = spRomana.ReadLine();
-                    // peso = Recibidos.Split('=')[1].Substring(0, Recibidos.Split('=')[1].Trim().Length - 4);
-
-                    peso = Recibidos.Trim().Substring(7, Recibidos.Trim().Length - 9).Trim();
-                    txtPesoEntrada.Text = peso;
-                    dtpHoraentrada.Value = DateTime.Now;
-                    spRomana.Close();
-                }
-          
-
-
-              
+                string trama;
+                string detalle;
+                txtPesoEntrada.Text = RomanaSerialHelper.LeerPesoUnaVez(spRomana, out trama, out detalle);
+                dtpHoraentrada.Value = DateTime.Now;
+                spRomana.Close();
             }
             catch (Exception ex)
             {
-                spRomana.Close();
+                try { if (spRomana.IsOpen) spRomana.Close(); } catch { }
                 Base.msjError(ex.Message);
-
             }
-
         }
 
         private void btnPesoSalida_Click(object sender, EventArgs e)
         {
-            
-            try{
+            try
+            {
                 if (!conexionSerial())
                     return;
-            string Recibidos = string.Empty;
-            string peso = string.Empty;
-            if (spRomana.IsOpen)
-            {
-                    spRomana.WriteLine("R");
-                    Recibidos = spRomana.ReadLine();
-                    // peso = Recibidos.Split('=')[1].Substring(0, Recibidos.Split('=')[1].Trim().Length - 4);
-                    peso = Recibidos.Trim().Substring(7, Recibidos.Trim().Length - 9).Trim();
-
-                    txtPesoSalida.Text = peso;
+                string trama;
+                string detalle;
+                txtPesoSalida.Text = RomanaSerialHelper.LeerPesoUnaVez(spRomana, out trama, out detalle);
                 dtpHoraSalida.Value = DateTime.Now;
-
                 spRomana.Close();
-            }
             }
             catch (Exception ex)
             {
-                spRomana.Close();
+                try { if (spRomana.IsOpen) spRomana.Close(); } catch { }
                 Base.msjError(ex.Message);
-
             }
-
         }
 
         private bool conexionSerial()
         {
-            string puerto = ConfigurationManager.AppSettings["PortName"];
-            if (string.IsNullOrWhiteSpace(puerto))
-                puerto = "COM1";
+            string puerto = RomanaSerialHelper.PuertoConfigurado;
 
             bool existe = SerialPort.GetPortNames()
                 .Any(p => string.Equals(p, puerto, StringComparison.OrdinalIgnoreCase));
@@ -2104,7 +2172,7 @@ namespace principal
                 if (Base.EsRomana() || (rbManual != null && !rbManual.Visible))
                 {
                     UiDialog.Show(
-                        "No hay báscula conectada en el puerto " + puerto + ".\n\nConecte la romana y verifique el puerto (PortName) en la configuración.",
+                        "No hay báscula conectada en el puerto " + puerto + ".\n\nUse Configuración → Puerto / Monitor romana para detectar el COM.",
                         "Báscula no disponible",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
@@ -2112,7 +2180,7 @@ namespace principal
                 else
                 {
                     UiDialog.Show(
-                        "No hay báscula conectada en el puerto " + puerto + ".\n\nUse el modo Manual para ingresar el peso, o conecte la romana y verifique el puerto (PortName) en la configuración.",
+                        "No hay báscula conectada en el puerto " + puerto + ".\n\nUse modo Manual, o Configuración → Puerto / Monitor romana.",
                         "Báscula no disponible",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
@@ -2122,13 +2190,9 @@ namespace principal
                 return false;
             }
 
-            spRomana.PortName = puerto;
-            spRomana.BaudRate = Convert.ToInt32(ConfigurationManager.AppSettings["BaudRate"]);
-            spRomana.DataBits = Convert.ToInt32(ConfigurationManager.AppSettings["DataBits"]);
-            spRomana.Parity = Parity.None;
-            spRomana.StopBits = StopBits.One;
-            spRomana.Handshake = Handshake.None;
-            spRomana.ReadTimeout = 5000;
+            if (spRomana.IsOpen)
+                spRomana.Close();
+            RomanaSerialHelper.ConfigurarPuerto(spRomana);
             spRomana.Open();
             return true;
         }

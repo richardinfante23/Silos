@@ -11,7 +11,7 @@ namespace principal
 {
     class seccionData
     {
-        static string connstring = ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
+        static string connstring => AppConnection.ConnectionString;
         NpgsqlConnection conn = new NpgsqlConnection(connstring);
 
         public DataTable insertar(string prmdescripcion, int prmid_estante)

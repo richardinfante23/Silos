@@ -11,7 +11,7 @@ namespace principal
 {
     class usuarioData
     {
-        static string connstring = ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
+        static string connstring => AppConnection.ConnectionString;
         NpgsqlConnection conn = new NpgsqlConnection(connstring);
 
         #region Buscar

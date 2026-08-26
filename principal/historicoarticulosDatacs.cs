@@ -15,7 +15,7 @@ namespace principal
     class historicoarticulosDatacs
     {
 
-        static string connstring = ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
+        static string connstring => AppConnection.ConnectionString;
         NpgsqlConnection conn = new NpgsqlConnection(connstring);
 
         public DataTable insertar(int prmid_tipo_mov,int prmid_cli_prov,string prmobservacion,int prmid_usuario,int prmid_conductor,DateTime prmfecha)

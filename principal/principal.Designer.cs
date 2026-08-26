@@ -32,6 +32,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.tsPrincipal = new System.Windows.Forms.ToolStripMenuItem();
             this.configuracionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.conexionBdToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.puertoRomanaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.usuariosToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.parametrosGeneralesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -155,6 +156,7 @@
             // configuracionToolStripMenuItem
             // 
             this.configuracionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.conexionBdToolStripMenuItem,
             this.puertoRomanaToolStripMenuItem,
             this.usuariosToolStripMenuItem1,
             this.parametrosGeneralesToolStripMenuItem});
@@ -162,24 +164,31 @@
             this.configuracionToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
             this.configuracionToolStripMenuItem.Text = "Configuracion";
             // 
+            // conexionBdToolStripMenuItem
+            // 
+            this.conexionBdToolStripMenuItem.Name = "conexionBdToolStripMenuItem";
+            this.conexionBdToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
+            this.conexionBdToolStripMenuItem.Text = "Conexión a base de datos…";
+            this.conexionBdToolStripMenuItem.Click += new System.EventHandler(this.conexionBdToolStripMenuItem_Click);
+            // 
             // puertoRomanaToolStripMenuItem
             // 
             this.puertoRomanaToolStripMenuItem.Name = "puertoRomanaToolStripMenuItem";
-            this.puertoRomanaToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
-            this.puertoRomanaToolStripMenuItem.Text = "Puerto Romana";
-            this.puertoRomanaToolStripMenuItem.Visible = false;
+            this.puertoRomanaToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
+            this.puertoRomanaToolStripMenuItem.Text = "Puerto / Monitor romana";
+            this.puertoRomanaToolStripMenuItem.Click += new System.EventHandler(this.puertoRomanaToolStripMenuItem_Click);
             // 
             // usuariosToolStripMenuItem1
             // 
             this.usuariosToolStripMenuItem1.Name = "usuariosToolStripMenuItem1";
-            this.usuariosToolStripMenuItem1.Size = new System.Drawing.Size(188, 22);
+            this.usuariosToolStripMenuItem1.Size = new System.Drawing.Size(220, 22);
             this.usuariosToolStripMenuItem1.Text = "Usuarios";
             this.usuariosToolStripMenuItem1.Click += new System.EventHandler(this.usuariosToolStripMenuItem1_Click);
             // 
             // parametrosGeneralesToolStripMenuItem
             // 
             this.parametrosGeneralesToolStripMenuItem.Name = "parametrosGeneralesToolStripMenuItem";
-            this.parametrosGeneralesToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
+            this.parametrosGeneralesToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
             this.parametrosGeneralesToolStripMenuItem.Text = "Parametros Generales";
             this.parametrosGeneralesToolStripMenuItem.Visible = false;
             // 
@@ -745,6 +754,7 @@
         private System.Windows.Forms.ToolStripMenuItem reporteCostosToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem productoTerminadoToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem configuracionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem conexionBdToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem puertoRomanaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem usuariosToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem parametrosGeneralesToolStripMenuItem;

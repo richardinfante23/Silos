@@ -13,7 +13,7 @@ namespace principal
 
     class AuditoriaData
     {
-        static string connstring = ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
+        static string connstring => AppConnection.ConnectionString;
         NpgsqlConnection conn = new NpgsqlConnection(connstring);
 
         public DataTable buscarauditoria(int codigo,DateTime prmfecha,DateTime prmfechahasta)

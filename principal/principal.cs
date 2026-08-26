@@ -18,7 +18,7 @@ namespace principal
 {
     public partial class principalFom : Form
     {
-        static string connstring = ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
+        static string connstring => AppConnection.ConnectionString;
         static string rutaPostgres = ConfigurationManager.AppSettings["rutaPostgres"];
         string _usuario;
         int _idusuario = 0;
@@ -151,7 +151,6 @@ namespace principal
 
         private void AplicarMenuOperativo()
         {
-            puertoRomanaToolStripMenuItem.Visible = false;
             parametrosGeneralesToolStripMenuItem.Visible = false;
 
             productoTerminadoToolStripMenuItem.Visible = false;
@@ -203,6 +202,8 @@ namespace principal
             silosToolStripMenuItem.Visible = esAdmin;
             configuracionToolStripMenuItem.Visible = esAdmin;
             usuariosToolStripMenuItem1.Visible = esAdmin;
+            conexionBdToolStripMenuItem.Visible = esAdmin;
+            puertoRomanaToolStripMenuItem.Visible = esAdmin;
             mantenimientoToolStripMenuItem.Visible = esAdmin;
             inventarioToolStripMenuItem1.Visible = false;
             tsPrincipal.Visible = esAdmin || esRomana;
@@ -374,6 +375,38 @@ namespace principal
             {
                 Cursor = Cursors.Default;
                 Base.msjErrorOperacion(ex, "abrir Configuración Tasa");
+            }
+        }
+
+        private void conexionBdToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!ConnectionConfigHelper.TryLaunchConfigTool())
+                {
+                    Base.msjAdvertencia(
+                        "No se encontró \"Sisges Configuracion.exe\" en la carpeta del programa.\n" +
+                        "Ejecute esa herramienta (instalada junto a Sisges Pro) para configurar la conexión.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Base.msjErrorOperacion(ex, "abrir configuración de conexión");
+            }
+        }
+
+        private void puertoRomanaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (var form = new romanaMonitorForm())
+                {
+                    form.ShowDialog(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                Base.msjErrorOperacion(ex, "abrir monitor de romana");
             }
         }
 

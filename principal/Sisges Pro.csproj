@@ -291,6 +291,15 @@
     <Compile Include="Tercero_ArticulosDatacs.cs" />
     <Compile Include="transporte.cs" />
     <Compile Include="asiciasionesData.cs" />
+    <Compile Include="AppConnection.cs" />
+    <Compile Include="ConnectionConfigHelper.cs" />
+    <Compile Include="RomanaSerialHelper.cs" />
+    <Compile Include="romanaMonitorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="conexionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="productorPickerForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -502,6 +511,9 @@
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
+    </None>
+    <None Include="connectionStrings.ejemplo.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>

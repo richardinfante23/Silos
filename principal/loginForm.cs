@@ -64,7 +64,11 @@ namespace principal
                 }
                 catch (Exception ex)
                 {
-                    Base.msjErrorOperacion(ex, "iniciar sesión");
+                    Base.msjError(
+                        "No se pudo conectar o iniciar sesión.\n\n" +
+                        "Si es la primera vez, ejecute \"Sisges Configuracion.exe\" " +
+                        "(en la misma carpeta que Sisges Pro) y configure la base de datos.\n\n" +
+                        ex.Message);
                 }
                
             

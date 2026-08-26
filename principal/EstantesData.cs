@@ -10,7 +10,7 @@ namespace principal
 {
     class EstantesData
     {
-        static string connstring = ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
+        static string connstring => AppConnection.ConnectionString;
         NpgsqlConnection conn = new NpgsqlConnection(connstring);
         #region Buscar
         public DataTable buscar(int prmid,string prmdescripcion)

@@ -6,16 +6,26 @@ using System.Windows.Forms;
 
 namespace principal
 {
+    public enum CatalogoPersonaModo
+    {
+        Productor = 0,
+        Cliente = 1
+    }
+
     /// <summary>
-    /// Listado emergente de productores (naturales y jurídicos) para selección.
-    /// Doble clic elige y cierra.
+    /// Listado emergente de productores o clientes (naturales y jurídicos).
+    /// Doble clic elige y cierra. Filtra por cédula/RIF, nombre o tipo.
     /// </summary>
     public class productorPickerForm : Form
     {
-        private readonly ProductorData _data = new ProductorData();
+        private readonly ProductorData _productorData = new ProductorData();
+        private readonly destinoData _destinoData = new destinoData();
+        private readonly string _tipoSolo;
+        private readonly CatalogoPersonaModo _modo;
         private GridHeaderFilter _filtro;
         private DataGridView _dgv;
         private TextBox _txtBuscar;
+        private Label _lblAyuda;
         private Button _btnCerrar;
         private DataTable _tabla;
 
@@ -25,9 +35,14 @@ namespace principal
         public string Nombre { get; private set; }
         public string Letra { get; private set; }
         public bool Seleccionado { get; private set; }
+        public CatalogoPersonaModo Modo { get { return _modo; } }
 
-        public productorPickerForm()
+        /// <param name="tipoSolo">"Natural", "Jurídico" o null para listar ambos.</param>
+        /// <param name="modo">Productor (recepción) o Cliente (despacho).</param>
+        public productorPickerForm(string tipoSolo = null, CatalogoPersonaModo modo = CatalogoPersonaModo.Productor)
         {
+            _tipoSolo = string.IsNullOrWhiteSpace(tipoSolo) ? null : tipoSolo.Trim();
+            _modo = modo;
             Documento = string.Empty;
             Nombre = string.Empty;
             Letra = string.Empty;
@@ -40,7 +55,14 @@ namespace principal
             UiTheme.ApplyForm(this);
             UiTheme.ApplyAppIcon(this);
             UiTheme.StyleDataGridView(_dgv);
-            Text = "Seleccionar productor";
+            bool esCliente = _modo == CatalogoPersonaModo.Cliente;
+            Text = esCliente ? "Seleccionar cliente" : "Seleccionar productor";
+            if (_lblAyuda != null)
+            {
+                _lblAyuda.Text = esCliente
+                    ? "Buscar cliente por cédula / RIF o nombre · doble clic para seleccionar"
+                    : "Buscar productor por cédula / RIF o nombre · doble clic para seleccionar";
+            }
             Cargar();
         }
 
@@ -54,7 +76,7 @@ namespace principal
             ClientSize = new Size(720, 480);
             BackColor = UiTheme.Surface;
 
-            var lbl = new Label
+            _lblAyuda = new Label
             {
                 Text = "Buscar por cédula / RIF o nombre · doble clic para seleccionar",
                 Location = new Point(16, 14),
@@ -97,7 +119,7 @@ namespace principal
             };
             _dgv.CellDoubleClick += dgv_CellDoubleClick;
 
-            Controls.Add(lbl);
+            Controls.Add(_lblAyuda);
             Controls.Add(_txtBuscar);
             Controls.Add(_btnCerrar);
             Controls.Add(_dgv);
@@ -116,28 +138,46 @@ namespace principal
                 _tabla.Columns.Add("documento", typeof(string));
                 _tabla.Columns.Add("nombre", typeof(string));
 
-                foreach (DataRow fila in _data.buscarGeneral().Rows)
+                bool cargarNatural = _tipoSolo == null
+                    || string.Equals(_tipoSolo, "Natural", StringComparison.OrdinalIgnoreCase);
+                bool cargarJuridico = _tipoSolo == null
+                    || string.Equals(_tipoSolo, "Jurídico", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(_tipoSolo, "Juridico", StringComparison.OrdinalIgnoreCase);
+
+                if (cargarNatural)
                 {
-                    if (EsEliminado(fila)) continue;
-                    _tabla.Rows.Add(
-                        Convert.ToInt32(GetCol(fila, "id")),
-                        0,
-                        "Natural",
-                        Convert.ToString(GetCol(fila, "letra")).Trim(),
-                        Convert.ToString(GetCol(fila, "Cédula", "cedula", "Cedula")),
-                        Convert.ToString(GetCol(fila, "nombre")));
+                    DataTable naturales = _modo == CatalogoPersonaModo.Cliente
+                        ? _destinoData.buscarGeneral()
+                        : _productorData.buscarGeneral();
+                    foreach (DataRow fila in naturales.Rows)
+                    {
+                        if (EsEliminado(fila)) continue;
+                        _tabla.Rows.Add(
+                            Convert.ToInt32(GetCol(fila, "id")),
+                            0,
+                            "Natural",
+                            Convert.ToString(GetCol(fila, "letra")).Trim(),
+                            Convert.ToString(GetCol(fila, "Cédula", "cedula", "Cedula")),
+                            Convert.ToString(GetCol(fila, "nombre")));
+                    }
                 }
 
-                foreach (DataRow fila in _data.buscarJuridicoGeneral().Rows)
+                if (cargarJuridico)
                 {
-                    if (EsEliminado(fila)) continue;
-                    _tabla.Rows.Add(
-                        0,
-                        Convert.ToInt32(GetCol(fila, "id")),
-                        "Jurídico",
-                        Convert.ToString(GetCol(fila, "letra")).Trim(),
-                        Convert.ToString(GetCol(fila, "R.I.F", "rif", "RIF")),
-                        Convert.ToString(GetCol(fila, "nombre")));
+                    DataTable juridicos = _modo == CatalogoPersonaModo.Cliente
+                        ? _destinoData.buscarDestinoGeneral()
+                        : _productorData.buscarJuridicoGeneral();
+                    foreach (DataRow fila in juridicos.Rows)
+                    {
+                        if (EsEliminado(fila)) continue;
+                        _tabla.Rows.Add(
+                            0,
+                            Convert.ToInt32(GetCol(fila, "id")),
+                            "Jurídico",
+                            Convert.ToString(GetCol(fila, "letra")).Trim(),
+                            Convert.ToString(GetCol(fila, "R.I.F", "rif", "RIF")),
+                            Convert.ToString(GetCol(fila, "nombre")));
+                    }
                 }
 
                 if (_filtro == null)
@@ -161,7 +201,7 @@ namespace principal
             }
             catch (Exception ex)
             {
-                Base.msjErrorOperacion(ex, "cargar productores");
+                Base.msjErrorOperacion(ex, _modo == CatalogoPersonaModo.Cliente ? "cargar clientes" : "cargar productores");
             }
         }
 
@@ -185,7 +225,7 @@ namespace principal
             try
             {
                 _filtro.BindingSource.Filter =
-                    "documento LIKE '%" + q + "%' OR nombre LIKE '%" + q + "%' OR letra LIKE '%" + q + "%'";
+                    "documento LIKE '%" + q + "%' OR nombre LIKE '%" + q + "%' OR letra LIKE '%" + q + "%' OR tipo LIKE '%" + q + "%'";
             }
             catch
             {
@@ -225,14 +265,19 @@ namespace principal
             }
             catch (Exception ex)
             {
-                Base.msjErrorOperacion(ex, "seleccionar productor");
+                Base.msjErrorOperacion(ex, "seleccionar registro");
             }
         }
 
         /// <summary>
-        /// Busca por documento (cédula o RIF) sin abrir el listado.
+        /// Busca productor por documento (cédula o RIF) sin abrir el listado.
         /// </summary>
         public static bool TryBuscarPorDocumento(string documento, out int idNatural, out int idJuridico, out string letra, out string nombre)
+        {
+            return TryBuscarPorDocumento(documento, CatalogoPersonaModo.Productor, out idNatural, out idJuridico, out letra, out nombre);
+        }
+
+        public static bool TryBuscarPorDocumento(string documento, CatalogoPersonaModo modo, out int idNatural, out int idJuridico, out string letra, out string nombre)
         {
             idNatural = 0;
             idJuridico = 0;
@@ -246,11 +291,12 @@ namespace principal
                 && !decimal.TryParse(documento.Trim(), NumberStyles.Number, CultureInfo.CurrentCulture, out numero))
                 return false;
 
-            var data = new ProductorData();
             try
             {
-                // Natural: prueba letras comunes vía buscarGeneral filtrado
-                foreach (DataRow fila in data.buscarGeneral().Rows)
+                DataTable naturales = modo == CatalogoPersonaModo.Cliente
+                    ? new destinoData().buscarGeneral()
+                    : new ProductorData().buscarGeneral();
+                foreach (DataRow fila in naturales.Rows)
                 {
                     if (EsEliminadoStatic(fila)) continue;
                     object doc = GetCol(fila, "Cédula", "cedula", "Cedula");
@@ -262,7 +308,10 @@ namespace principal
                     return true;
                 }
 
-                foreach (DataRow fila in data.buscarJuridicoGeneral().Rows)
+                DataTable juridicos = modo == CatalogoPersonaModo.Cliente
+                    ? new destinoData().buscarDestinoGeneral()
+                    : new ProductorData().buscarJuridicoGeneral();
+                foreach (DataRow fila in juridicos.Rows)
                 {
                     if (EsEliminadoStatic(fila)) continue;
                     object doc = GetCol(fila, "R.I.F", "rif", "RIF");
@@ -281,9 +330,6 @@ namespace principal
             return false;
         }
 
-        /// <summary>
-        /// Los SP aliasan documento como "Cédula" / "R.I.F" (no "cedula"/"rif").
-        /// </summary>
         private static object GetCol(DataRow fila, params string[] nombres)
         {
             if (fila == null || nombres == null) return null;
