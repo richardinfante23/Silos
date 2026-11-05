@@ -54,13 +54,23 @@ namespace principal
         public string gdt { get; set; }
          public string nombresilo { get; set; }
 
-        /// <summary>Precio USD por tonelada (tasa del día/producto).</summary>
+        /// <summary>Precio tonelada $ a BCV (tasa del día/producto).</summary>
         public decimal precio_tonelada_usd { get; set; }
+        /// <summary>Precio tonelada en $ efectivo (tasa del día/producto).</summary>
+        public decimal precio_efectivo_usd { get; set; }
+        /// <summary>Precio tonelada $ para modalidad 50/50 (mitad efectivo).</summary>
+        public decimal precio_50_50_usd { get; set; }
         /// <summary>Valor del dólar en Bs (tasa del día/producto).</summary>
         public decimal tasa_dolar_bs { get; set; }
-        /// <summary>Importe total en USD según peso (toneladas × precio).</summary>
+        /// <summary>Texto de precios/tasas visibles en boleta según modalidad.</summary>
+        public string detalle_precios_boleta { get; set; }
+        /// <summary>Modalidad de pago: BS/BCV, 50/50 o Efectivo $.</summary>
+        public string modalidad_pago { get; set; }
+        /// <summary>Tasa especial asociada a esta recepción (tasa_diaria.id); 0 = usar tasa del día.</summary>
+        public int id_tasa { get; set; }
+        /// <summary>Importe en $ efectivo según modalidad (en 50/50 = mitad del peso).</summary>
         public decimal total_usd { get; set; }
-        /// <summary>Importe total en Bs (total_usd × tasa_dolar_bs).</summary>
+        /// <summary>Importe en Bs BCV según modalidad (en 50/50 = mitad del peso).</summary>
         public decimal total_bs { get; set; }
        
         public List<analisis> listaAnalisis = new List<analisis>();

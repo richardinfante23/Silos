@@ -155,14 +155,11 @@ namespace principal
             if (nuevo)
             {
                 rbTipoNatural.Checked = true;
-                formatoFecha();
                 AplicarModoDespacho(false);
             }
             if (!nuevo)
             {
                 cbEstatus.Enabled = true;
-                dtpFecha.Format = DateTimePickerFormat.Custom;
-                dtpFecha.CustomFormat = " ";
                 cbEstatus.SelectedItem = null;
                 cbSilos.SelectedItem = null;
                 cbEstatus.Text = string.Empty;
@@ -172,6 +169,23 @@ namespace principal
             }
 
             AplicarModoPesajeSegunPerfil();
+            AplicarPoliticaFechaDocumento();
+        }
+
+        /// <summary>
+        /// Fecha documento: formato dd/MM/yyyy; solo administrador puede modificarla.
+        /// No admin: deshabilitada; en nuevo carga hoy.
+        /// </summary>
+        private void AplicarPoliticaFechaDocumento()
+        {
+            formatoFecha();
+            if (nuevo)
+                dtpFecha.Value = DateTime.Today;
+
+            bool puedeEditar = Base.EsAdministrador();
+            if (objRecepcion != null && (objRecepcion.id_estatus == 5 || objRecepcion.id_estatus == 6))
+                puedeEditar = false;
+            dtpFecha.Enabled = puedeEditar;
         }
 
         private void AplicarModoPesajeSegunPerfil()
@@ -449,9 +463,10 @@ namespace principal
                 }
                 if (((Control)sender).Name == "dtpFecha")
                 {
-                    dtpFecha.Value = DateTime.Now;
-                    dtpFecha.Format = DateTimePickerFormat.Custom;
-                    dtpFecha.CustomFormat = " ";
+                    if (!Base.EsAdministrador())
+                        return;
+                    dtpFecha.Value = DateTime.Today;
+                    formatoFecha();
                 }
                 if (((Control)sender).Name == "dtpFechaHasta")
                 {
@@ -906,13 +921,17 @@ namespace principal
                 //    txtNombreProductor.AccessibleDescription = "validar";
 
                 //}
-                txtDIProductor.AccessibleDescription = "validar";
-                if (!validateRegistrarOrEditar("validar"))
-                    return;
+                if (!_anulando)
+                {
+                    txtDIProductor.AccessibleDescription = "validar";
+                    if (!validateRegistrarOrEditar("validar"))
+                        return;
+                }
                 objRecepcion.fecha = dtpFecha.Value;
                 objRecepcion.nro_placa = txtPlaca.Text;
 
-                objRecepcion.id_producto = Convert.ToInt32(((System.Data.DataRowView)(cbProducto.SelectedItem)).Row.ItemArray[0]);
+                if (cbProducto.SelectedItem is DataRowView)
+                    objRecepcion.id_producto = Convert.ToInt32(((System.Data.DataRowView)(cbProducto.SelectedItem)).Row.ItemArray[0]);
 
                 objRecepcion.nro_guia = txtNroguia.Text;
                 objRecepcion.peso_guia = !string.IsNullOrWhiteSpace(txtPesoGuia.Text) ? Convert.ToDecimal(txtPesoGuia.Text) : 0;
@@ -1407,22 +1426,11 @@ namespace principal
                     dtpHoraSalida.CustomFormat = " ";
 
                 }
-                if (objRecepcion.fecha.Date != horadefecto.Date)
-                {
-                    formatoFecha();
-                    dtpFecha.Value = Convert.ToDateTime(objRecepcion.fecha);
-                }
-                else
-                {
+                formatoFecha();
+                dtpFecha.Value = Convert.ToDateTime(objRecepcion.fecha);
 
-                    dtpFecha.Format = DateTimePickerFormat.Custom;
-                    dtpFecha.CustomFormat = " ";
-                }
-
-               
-                    bloquearControles();
-
-
+                bloquearControles();
+                AplicarPoliticaFechaDocumento();
 
                     if (objRecepcion.id_estatus >= 4 && objRecepcion.id_estatus <= 6)
                     {
@@ -1798,18 +1806,76 @@ namespace principal
             cargarAnalisis();
         }
 
+        private bool _anulando;
+
         private void btnAnular_Click(object sender, EventArgs e)
         {
+            if (objRecepcion == null || objRecepcion.id <= 0)
+            {
+                Base.msjAdvertencia("No hay despacho para anular.");
+                return;
+            }
+            if (objRecepcion.id_estatus == 6)
+            {
+                Base.msjAdvertencia("El despacho ya está anulado.");
+                return;
+            }
 
-            txtObservaciones.AccessibleDescription = "validarAnular";
+            if (txtObservaciones != null)
+            {
+                txtObservaciones.Enabled = true;
+                txtObservaciones.AccessibleDescription = "validarAnular";
+                txtObservaciones.Focus();
+            }
+
             if (!validateRegistrarOrEditar("validarAnular"))
+            {
+                Base.msjAdvertencia("Indique el motivo de anulación en observaciones.");
+                return;
+            }
+
+            DialogResult confirm = UiDialog.Show(
+                "¿Desea anular este despacho?",
+                "Anular",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+            if (confirm != DialogResult.Yes)
                 return;
 
+            int estatusAnterior = objRecepcion.id_estatus;
             objRecepcion.id_estatus = 6;
-            btnGuardar_Click(sender, e);
+            _anulando = true;
+            try
+            {
+                btnGuardar_Click(sender, e);
+            }
+            finally
+            {
+                _anulando = false;
+            }
+
+            if (objRecepcion.id_estatus == 6)
+            {
+                try
+                {
+                    DataTable dt = dd.buscar(objRecepcion.id, 0, 0, 0, 0, string.Empty, 0, 0,
+                        DateTimePicker.MinimumDateTime, DateTimePicker.MinimumDateTime);
+                    if (dt != null && dt.Rows.Count > 0)
+                    {
+                        int estatusBd = Convert.ToInt32(dt.Rows[0]["id_estatus"]);
+                        if (estatusBd != 6)
+                            objRecepcion.id_estatus = estatusAnterior;
+                    }
+                    else
+                        objRecepcion.id_estatus = estatusAnterior;
+                }
+                catch
+                {
+                    objRecepcion.id_estatus = estatusAnterior;
+                }
+            }
+
             bloquearControles();
-
-
         }
 
         private void bloquearControles()
@@ -1821,9 +1887,11 @@ namespace principal
             btnGuardar.Enabled = false;
             btnGuardarAnalisis.Enabled = false; 
             btnGuardarRomana.Enabled = false;
-            btnAnular.Enabled = false;
+            btnAnular.Enabled = objRecepcion.id_estatus != 6;
             rbAnalisis.Enabled = false;
             rbAnalisisNo.Enabled = false;
+            if (objRecepcion.id_estatus == 5 && txtObservaciones != null)
+                txtObservaciones.Enabled = true;
             }
               else
             {
@@ -1833,6 +1901,7 @@ namespace principal
                 btnGuardarAnalisis.Enabled = true;
                 btnGuardarRomana.Enabled = true;
                 btnAnular.Enabled = true;
+                AplicarPoliticaFechaDocumento();
             }
 
             ConfigurarAnalisisSinUso();
@@ -2131,7 +2200,8 @@ namespace principal
                     return;
                 string trama;
                 string detalle;
-                txtPesoEntrada.Text = RomanaSerialHelper.LeerPesoUnaVez(spRomana, out trama, out detalle);
+                decimal peso = RomanaSerialHelper.LeerPesoDecimal(spRomana, out trama, out detalle);
+                txtPesoEntrada.Text = RomanaSerialHelper.FormatearPesoParaBd(peso);
                 dtpHoraentrada.Value = DateTime.Now;
                 spRomana.Close();
             }
@@ -2150,7 +2220,8 @@ namespace principal
                     return;
                 string trama;
                 string detalle;
-                txtPesoSalida.Text = RomanaSerialHelper.LeerPesoUnaVez(spRomana, out trama, out detalle);
+                decimal peso = RomanaSerialHelper.LeerPesoDecimal(spRomana, out trama, out detalle);
+                txtPesoSalida.Text = RomanaSerialHelper.FormatearPesoParaBd(peso);
                 dtpHoraSalida.Value = DateTime.Now;
                 spRomana.Close();
             }

@@ -1,4 +1,4 @@
-bin/
+﻿bin/
 obj/
 .vs/
 *.suo
@@ -6,3 +6,21 @@ obj/
 *.userosscache
 *.sln.docstates
 UpgradeLog*.htm
+*.rar
+*.zip
+*.7z
+*.msi
+deploy/**/*.exe
+deploy/**/*.rar
+deploy/**/*.zip
+Release.rar
+deploy.rar
+scripts/copia.sql
+scripts/copiar*.sql
+principal/bin/
+principal/obj/
+Sisges.Configuracion/bin/
+Sisges.Configuracion/obj/
+
+principal/SisgesConnection.config
+**/SisgesConnection.config

@@ -10,6 +10,7 @@ namespace principal
         private bool _uiModernizada;
         private Panel _panelMetaRecepcion;
         private FlowLayoutPanel _panelAccionesRecepcion;
+        private Button btnTasaRecepcion;
         private TabPage _tpCaptura;
         private TabPage _tpListado;
         private TabControl _tcPasosCaptura;
@@ -31,6 +32,8 @@ namespace principal
         private TextBox _txtFiltroCliente;
         private ComboBox _cbFiltroProducto;
         private ComboBox _cbFiltroEstatus;
+        private ComboBox cbModalidadPago;
+        private Label _lblModalidadPago;
         private const float AlturaFiltrosListado = 156F;
         private const int AlturaCardInicio = 182;
         private const int AlturaCardGuia = 182;
@@ -290,6 +293,7 @@ namespace principal
                 if (btnAnular != null) btnAnular.Visible = false;
                 if (btnImprimir != null) btnImprimir.Visible = false;
                 if (btnExportar != null) btnExportar.Visible = true;
+                if (btnTasaRecepcion != null) btnTasaRecepcion.Visible = false;
                 return;
             }
 
@@ -309,6 +313,8 @@ namespace principal
                 btnImprimir.Visible = tieneRegistro
                     && objRecepcion.id_estatus >= 4
                     && objRecepcion.id_estatus <= 6;
+            if (btnTasaRecepcion != null)
+                btnTasaRecepcion.Visible = Base.EsAdministrador() && tieneRegistro;
         }
 
         private void AnclarPanelAcciones(TableLayoutPanel host, int fila)
@@ -739,6 +745,29 @@ namespace principal
             label4.Text = "Placa";
             rbtFechaHasta.Text = "Hasta";
 
+            if (_lblModalidadPago == null)
+            {
+                _lblModalidadPago = new Label
+                {
+                    Text = "Modalidad pago",
+                    AutoSize = true,
+                    Font = UiTheme.FontRegular,
+                    ForeColor = UiTheme.TextMuted
+                };
+            }
+            if (cbModalidadPago == null)
+            {
+                cbModalidadPago = new ComboBox
+                {
+                    DropDownStyle = ComboBoxStyle.DropDownList,
+                    Name = "cbModalidadPago"
+                };
+                cbModalidadPago.Items.AddRange(new object[] { "BS/BCV", "50/50", "Efectivo $" });
+                cbModalidadPago.SelectedIndex = 0;
+                UiTheme.StyleComboBox(cbModalidadPago);
+                cbModalidadPago.SelectedIndexChanged += cbModalidadPago_SelectedIndexChanged;
+            }
+
             EstilarBotonCampo(btnBuscarConductor, "Buscar");
             var conductorBox = CrearCampoConBoton(txtConductor, btnBuscarConductor);
 
@@ -750,7 +779,7 @@ namespace principal
                 new Control[] { label1, txtNroTcicket },
                 new Control[] { label2, dtpFecha },
                 new Control[] { label5, cbProducto },
-                new Control[] { rbtFechaHasta, dtpFechaHasta });
+                new Control[] { _lblModalidadPago, cbModalidadPago });
 
             var row2 = CrearFilaCampos(
                 new Control[] { label3, conductorBox },
@@ -758,7 +787,7 @@ namespace principal
                 new Control[] { label4, txtPlaca },
                 null);
 
-            foreach (Control c in new Control[] { txtNroTcicket, txtConductor, txtNombreConductor, txtPlaca, cbProducto, dtpFecha, dtpFechaHasta })
+            foreach (Control c in new Control[] { txtNroTcicket, txtConductor, txtNombreConductor, txtPlaca, cbProducto, dtpFecha, dtpFechaHasta, cbModalidadPago })
                 c.Dock = DockStyle.Fill;
 
             root.Controls.Add(header, 0, 0);
@@ -1155,15 +1184,66 @@ namespace principal
                 BackColor = UiTheme.Surface
             };
 
-            foreach (var btn in new[] { btnGuardar, btnCancelar, btnAnular, btnImprimir, btnExportar })
+            btnTasaRecepcion = new Button
             {
-                btn.Size = new Size(120, 38);
+                Name = "btnTasaRecepcion",
+                Text = "Tasa especial",
+                Size = new Size(140, 38),
+                Margin = new Padding(0, 0, 10, 0),
+                Visible = false
+            };
+            btnTasaRecepcion.Click += btnTasaRecepcion_Click;
+
+            foreach (var btn in new[] { btnGuardar, btnCancelar, btnAnular, btnImprimir, btnExportar, btnTasaRecepcion })
+            {
+                if (btn == null) continue;
+                if (btn != btnTasaRecepcion)
+                    btn.Size = new Size(120, 38);
                 btn.Margin = new Padding(0, 0, 10, 0);
                 panel.Controls.Add(btn);
             }
 
             UiTheme.ApplyActionButtons(panel);
             return panel;
+        }
+
+        private void btnTasaRecepcion_Click(object sender, EventArgs e)
+        {
+            if (!Base.EsAdministrador())
+            {
+                Base.msjAdvertencia("Solo el perfil administrador puede registrar una tasa especial.");
+                return;
+            }
+
+            if (objRecepcion == null || objRecepcion.id <= 0)
+            {
+                Base.msjAdvertencia("Guarde la recepción antes de registrar una tasa especial.");
+                return;
+            }
+
+            DateTime fechaRecepcion = objRecepcion.fecha != default(DateTime)
+                ? objRecepcion.fecha.Date
+                : (dtpFecha != null ? dtpFecha.Value.Date : DateTime.Today);
+
+            int idProducto = objRecepcion.id_producto;
+            if (idProducto <= 0 && cbProducto != null && cbProducto.SelectedValue != null
+                && cbProducto.SelectedValue != DBNull.Value
+                && !(cbProducto.SelectedValue is DataRowView))
+            {
+                try { idProducto = Convert.ToInt32(cbProducto.SelectedValue); }
+                catch { idProducto = 0; }
+            }
+
+            using (var frm = new tasaForm(fechaRecepcion, idProducto, objRecepcion.id))
+            {
+                if (frm.ShowDialog(this) == DialogResult.OK)
+                {
+                    if (frm.IdTasaCreada > 0)
+                        objRecepcion.id_tasa = frm.IdTasaCreada;
+                    try { AplicarPreciosTasa(objRecepcion); }
+                    catch { /* no bloquear */ }
+                }
+            }
         }
 
         public void ActualizarEspacioGrilla()

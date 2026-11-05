@@ -1,10 +1,10 @@
 using System;
-using System.Configuration;
 
 namespace principal
 {
     /// <summary>
-    /// Cadena de conexión centralizada. Tras cambiar/cifrar config, llamar Invalidate().
+    /// Cadena de conexión centralizada desde SisgesConnection.config.
+    /// Tras cambiar/cifrar, llamar Invalidate().
     /// </summary>
     public static class AppConnection
     {
@@ -30,16 +30,19 @@ namespace principal
             {
                 _cached = null;
             }
-            ConfigurationManager.RefreshSection("connectionStrings");
         }
 
         private static string LeerDesdeConfig()
         {
-            ConnectionStringSettings cs = ConfigurationManager.ConnectionStrings["ConnectionString"];
-            if (cs == null || string.IsNullOrWhiteSpace(cs.ConnectionString))
+            ConnectionSettings settings = ConnectionConfigHelper.Load();
+            if (settings == null
+                || string.IsNullOrWhiteSpace(settings.Server)
+                || string.IsNullOrWhiteSpace(settings.Database))
+            {
                 throw new InvalidOperationException(
-                    "No hay ConnectionString configurada. Use Configuración → Conexión a base de datos.");
-            return cs.ConnectionString.Trim();
+                    "No hay ConnectionString configurada. Ejecute \"Sisges Configuracion.exe\".");
+            }
+            return settings.ToConnectionString();
         }
     }
 }

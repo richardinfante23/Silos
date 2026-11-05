@@ -69,10 +69,10 @@ namespace SisgesConfiguracion
             });
             Controls.Add(new Label
             {
-                Text = "Herramienta externa (no requiere login). Guarda en Sisges Pro.exe.config",
+                Text = "Guarda en SisgesConnection.config (junto al exe). Escriba la BD y clave de ESTE PC y pulse Guardar.",
                 ForeColor = Color.FromArgb(95, 108, 122),
                 Location = new Point(20, 42),
-                Size = new Size(480, 28)
+                Size = new Size(480, 32)
             });
 
             int y = 78;

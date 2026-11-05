@@ -512,6 +512,9 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="SisgesConnection.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="connectionStrings.ejemplo.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

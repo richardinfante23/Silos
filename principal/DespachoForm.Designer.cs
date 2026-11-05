@@ -655,7 +655,7 @@
             // 
             // btnAnular
             // 
-            this.btnAnular.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.btnAnular.DialogResult = System.Windows.Forms.DialogResult.None;
             this.btnAnular.Image = ((System.Drawing.Image)(resources.GetObject("btnAnular.Image")));
             this.btnAnular.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
             this.btnAnular.Location = new System.Drawing.Point(384, 518);

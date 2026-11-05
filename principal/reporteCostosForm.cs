@@ -16,6 +16,7 @@ namespace principal
         public DateTime fecha { get; set; }
         public string producto { get; set; }
         public string productor { get; set; }
+        public string modalidad_pago { get; set; }
         public decimal peso_neto { get; set; }
         public decimal precio_tonelada_usd { get; set; }
         public decimal precio_bs_usd { get; set; }
@@ -33,6 +34,13 @@ namespace principal
         private readonly string _empresa = ConfigurationManager.AppSettings["Empresa"];
         private readonly string _direccion = ConfigurationManager.AppSettings["direccionEmpresa"];
         private static readonly TextInfo TextoEs = CultureInfo.GetCultureInfo("es-VE").TextInfo;
+        private static readonly string[] Modalidades =
+        {
+            "(Todas)",
+            "BS/BCV",
+            "50/50",
+            "Efectivo $"
+        };
 
         private List<reporteCostoBO> _lista = new List<reporteCostoBO>();
         private List<reporteCostoBO> _listaFiltrada = new List<reporteCostoBO>();
@@ -42,6 +50,7 @@ namespace principal
         private DateTimePicker _dtpDesde;
         private DateTimePicker _dtpHasta;
         private ComboBox _cbProducto;
+        private ComboBox _cbModalidad;
         private TextBox _txtCedulaProductor;
         private TextBox _txtNombreProductor;
         private Button _btnBuscarProductor;
@@ -68,6 +77,7 @@ namespace principal
             UiTheme.StyleDataGridView(_dgv);
             Text = "Reporte de Costos";
             CargarProductos();
+            CargarModalidades();
             _dtpDesde.Value = DateTime.Today.AddDays(-30);
             _dtpHasta.Value = DateTime.Today;
             LimpiarProductor();
@@ -118,9 +128,18 @@ namespace principal
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Location = new Point(232, 26),
-                Size = new Size(180, 26)
+                Size = new Size(160, 26)
             };
             UiTheme.StyleComboBox(_cbProducto);
+
+            var lblModalidad = new Label { Text = "Modalidad", Location = new Point(402, 8), AutoSize = true, ForeColor = UiTheme.TextMuted };
+            _cbModalidad = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(402, 26),
+                Size = new Size(130, 26)
+            };
+            UiTheme.StyleComboBox(_cbModalidad);
 
             var lblCedula = new Label { Text = "Cédula / RIF productor", Location = new Point(12, 58), AutoSize = true, ForeColor = UiTheme.TextMuted };
             _txtCedulaProductor = new TextBox
@@ -174,6 +193,8 @@ namespace principal
             panel.Controls.Add(_dtpHasta);
             panel.Controls.Add(lblProd);
             panel.Controls.Add(_cbProducto);
+            panel.Controls.Add(lblModalidad);
+            panel.Controls.Add(_cbModalidad);
             panel.Controls.Add(lblCedula);
             panel.Controls.Add(_txtCedulaProductor);
             panel.Controls.Add(_btnBuscarProductor);
@@ -235,6 +256,24 @@ namespace principal
             _cbProducto.DisplayMember = "nombre";
             _cbProducto.ValueMember = "id";
             _cbProducto.SelectedIndex = 0;
+        }
+
+        private void CargarModalidades()
+        {
+            _cbModalidad.Items.Clear();
+            foreach (string m in Modalidades)
+                _cbModalidad.Items.Add(m);
+            _cbModalidad.SelectedIndex = 0;
+        }
+
+        private string ObtenerModalidadFiltro()
+        {
+            if (_cbModalidad == null || _cbModalidad.SelectedItem == null)
+                return string.Empty;
+            string valor = Convert.ToString(_cbModalidad.SelectedItem);
+            if (string.IsNullOrWhiteSpace(valor) || valor.Equals("(Todas)", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+            return valor.Trim();
         }
 
         private void LimpiarProductor()
@@ -303,6 +342,8 @@ namespace principal
         private void btnTodos_Click(object sender, EventArgs e)
         {
             _cbProducto.SelectedIndex = 0;
+            if (_cbModalidad.Items.Count > 0)
+                _cbModalidad.SelectedIndex = 0;
             LimpiarProductor();
             _dtpDesde.Value = DateTime.Today.AddDays(-30);
             _dtpHasta.Value = DateTime.Today;
@@ -335,15 +376,42 @@ namespace principal
                     _dtpDesde.Value.Date,
                     _dtpHasta.Value.Date);
 
+                var ids = new List<int>();
+                foreach (DataRow fila in dt.Rows)
+                {
+                    if (fila["Nro_Ticket"] != DBNull.Value)
+                        ids.Add(Convert.ToInt32(fila["Nro_Ticket"]));
+                }
+                Dictionary<int, string> modalidades = _recepcionData.ObtenerModalidadesPago(ids);
+                Dictionary<int, int> idsTasa = _recepcionData.ObtenerIdsTasa(ids);
+
                 _lista = new List<reporteCostoBO>();
                 foreach (DataRow fila in dt.Rows)
                 {
-                    var item = MapearFila(fila);
+                    var item = MapearFila(fila, modalidades, idsTasa);
                     if (item != null)
                         _lista.Add(item);
                 }
 
-                _listaFiltrada = _lista;
+                string modalidadFiltro = ObtenerModalidadFiltro();
+                if (string.IsNullOrEmpty(modalidadFiltro))
+                    _listaFiltrada = _lista;
+                else
+                    _listaFiltrada = _lista
+                        .Where(x => string.Equals(x.modalidad_pago, modalidadFiltro, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
+                // Solo al filtrar BS/BCV: rellenar Total $ con Peso * Precio BCV / 1000
+                // para poder calcular los promedios abajo (no aplica a otras modalidades).
+                if (string.Equals(modalidadFiltro, "BS/BCV", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (reporteCostoBO item in _listaFiltrada)
+                    {
+                        if (item == null) continue;
+                        item.total_usd = Math.Round(item.peso_neto * item.precio_tonelada_usd / 1000m, 2);
+                    }
+                }
+
                 _dgv.DataSource = null;
                 _dgv.DataSource = _listaFiltrada;
                 ConfigurarColumnas();
@@ -355,15 +423,33 @@ namespace principal
             }
         }
 
-        private reporteCostoBO MapearFila(DataRow fila)
+        private reporteCostoBO MapearFila(DataRow fila, Dictionary<int, string> modalidades, Dictionary<int, int> idsTasa)
         {
             if (fila == null) return null;
 
+            int ticket = Convert.ToInt32(fila["Nro_Ticket"]);
+            string modalidad = "BS/BCV";
+            if (fila.Table.Columns.Contains("modalidad_pago") && fila["modalidad_pago"] != DBNull.Value)
+                modalidad = Convert.ToString(fila["modalidad_pago"]);
+            else if (modalidades != null && modalidades.ContainsKey(ticket))
+                modalidad = modalidades[ticket];
+            if (string.IsNullOrWhiteSpace(modalidad))
+                modalidad = "BS/BCV";
+            else
+                modalidad = modalidad.Trim();
+
+            int idTasa = 0;
+            if (fila.Table.Columns.Contains("id_tasa") && fila["id_tasa"] != DBNull.Value)
+                idTasa = Convert.ToInt32(fila["id_tasa"]);
+            else if (idsTasa != null && idsTasa.ContainsKey(ticket))
+                idTasa = idsTasa[ticket];
+
             var item = new reporteCostoBO
             {
-                ticket = Convert.ToInt32(fila["Nro_Ticket"]),
+                ticket = ticket,
                 fecha = Convert.ToDateTime(fila["fecha"]),
                 producto = FormatoTitulo(Convert.ToString(fila["nombre_producto"])),
+                modalidad_pago = modalidad,
                 peso_neto = Math.Round(Convert.ToDecimal(fila["peso_neto"]), 2),
                 empresa = _empresa,
                 direccion_empresa = _direccion
@@ -400,11 +486,11 @@ namespace principal
                 item.peso_neto = pesoKg;
             }
 
-            AplicarTasa(item, item.fecha, idProducto, pesoKg);
+            AplicarTasa(item, item.fecha, idProducto, pesoKg, item.modalidad_pago, idTasa);
             return item;
         }
 
-        private void AplicarTasa(reporteCostoBO item, DateTime fecha, int idProducto, decimal pesoKg)
+        private void AplicarTasa(reporteCostoBO item, DateTime fecha, int idProducto, decimal pesoKg, string modalidad, int idTasa = 0)
         {
             item.precio_tonelada_usd = 0;
             item.precio_bs_usd = 0;
@@ -414,16 +500,47 @@ namespace principal
 
             try
             {
-                DataTable dt = _tasaData.buscarPorFechaProducto(fecha.Date, idProducto);
+                DataTable dt = null;
+                if (idTasa > 0)
+                    dt = _tasaData.buscarPorId(idTasa);
+                if (dt == null || dt.Rows.Count == 0)
+                    dt = _tasaData.buscarPorFechaProducto(fecha.Date, idProducto);
                 if (dt == null || dt.Rows.Count == 0) return;
 
-                decimal precioUsd = Convert.ToDecimal(dt.Rows[0]["precio_tonelada_usd"]);
-                decimal tasaBs = Convert.ToDecimal(dt.Rows[0]["tasa_dolar_bs"]);
+                DataRow fila = dt.Rows[0];
+                decimal precioBcv = Convert.ToDecimal(fila["precio_tonelada_usd"]);
+                decimal precioEfectivo = 0;
+                if (fila.Table.Columns.Contains("precio_efectivo_usd") && fila["precio_efectivo_usd"] != DBNull.Value)
+                    precioEfectivo = Convert.ToDecimal(fila["precio_efectivo_usd"]);
+                decimal precio5050 = 0;
+                if (fila.Table.Columns.Contains("precio_50_50_usd") && fila["precio_50_50_usd"] != DBNull.Value)
+                    precio5050 = Convert.ToDecimal(fila["precio_50_50_usd"]);
+                decimal tasaBs = Convert.ToDecimal(fila["tasa_dolar_bs"]);
                 decimal toneladas = pesoKg / 1000m;
-                item.precio_tonelada_usd = precioUsd;
-                item.precio_bs_usd = tasaBs;
-                item.total_usd = Math.Round(toneladas * precioUsd, 2);
-                item.total_bs = Math.Round(item.total_usd * tasaBs, 2);
+                string m = string.IsNullOrWhiteSpace(modalidad) ? "BS/BCV" : modalidad.Trim();
+
+                if (string.Equals(m, "Efectivo $", StringComparison.OrdinalIgnoreCase))
+                {
+                    item.precio_tonelada_usd = precioEfectivo;
+                    item.precio_bs_usd = 0;
+                    item.total_usd = Math.Round(toneladas * precioEfectivo, 2);
+                    item.total_bs = 0;
+                }
+                else if (string.Equals(m, "50/50", StringComparison.OrdinalIgnoreCase))
+                {
+                    decimal mitadTon = toneladas / 2m;
+                    item.precio_tonelada_usd = precio5050;
+                    item.precio_bs_usd = tasaBs;
+                    item.total_usd = Math.Round(mitadTon * precio5050, 2);
+                    item.total_bs = Math.Round(mitadTon * precio5050 * tasaBs, 2);
+                }
+                else
+                {
+                    item.precio_tonelada_usd = precioBcv;
+                    item.precio_bs_usd = tasaBs;
+                    item.total_usd = 0;
+                    item.total_bs = Math.Round(toneladas * precioBcv * tasaBs, 2);
+                }
             }
             catch
             {
@@ -441,6 +558,7 @@ namespace principal
             CatalogGridHelper.SetHeader(_dgv, "fecha", "Fecha");
             CatalogGridHelper.SetHeader(_dgv, "producto", "Producto");
             CatalogGridHelper.SetHeader(_dgv, "productor", "Productor");
+            CatalogGridHelper.SetHeader(_dgv, "modalidad_pago", "Modalidad");
             CatalogGridHelper.SetHeader(_dgv, "peso_neto", "Peso (Kg)");
             CatalogGridHelper.SetHeader(_dgv, "precio_tonelada_usd", "Precio $/Ton");
             CatalogGridHelper.SetHeader(_dgv, "precio_bs_usd", "Precio Bs/$");
@@ -460,13 +578,18 @@ namespace principal
             decimal peso = _listaFiltrada.Sum(x => x.peso_neto);
             decimal usd = _listaFiltrada.Sum(x => x.total_usd);
             decimal bs = _listaFiltrada.Sum(x => x.total_bs);
+            decimal promedioPrecio = peso > 0 ? usd / peso : 0;
+            decimal promedioBcv = usd > 0 ? bs / usd : 0;
+
             _lbTotales.Text = string.Format(
                 CultureInfo.CurrentCulture,
-                "Registros: {0}   |   Peso: {1:N2} Kg   |   Total $: {2:N2}   |   Total Bs: {3:N2}",
+                "Registros: {0}   |   Peso: {1:N2} Kg   |   Total $: {2:N2}   |   Total Bs: {3:N2}   |   Prom. Precio $: {4:N4}   |   Prom. Bs/bcv: {5:N2}",
                 _listaFiltrada.Count,
                 peso,
                 usd,
-                bs);
+                bs,
+                promedioPrecio,
+                promedioBcv);
         }
 
         private void btnExportar_Click(object sender, EventArgs e)

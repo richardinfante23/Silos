@@ -230,7 +230,7 @@
             // 
             // btnAnular
             // 
-            this.btnAnular.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.btnAnular.DialogResult = System.Windows.Forms.DialogResult.None;
             this.btnAnular.Image = ((System.Drawing.Image)(resources.GetObject("btnAnular.Image")));
             this.btnAnular.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
             this.btnAnular.Location = new System.Drawing.Point(462, 495);
@@ -706,6 +706,8 @@
             // 
             // dtpFecha
             // 
+            this.dtpFecha.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtpFecha.CustomFormat = "dd/MM/yyyy";
             this.dtpFecha.Location = new System.Drawing.Point(89, 74);
             this.dtpFecha.Name = "dtpFecha";
             this.dtpFecha.Size = new System.Drawing.Size(200, 20);

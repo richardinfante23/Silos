@@ -449,5 +449,224 @@ namespace principal
 
 
         #endregion
+
+        #region Modalidad de pago / tasa especial
+        private static readonly object EsquemaIdTasaLock = new object();
+        private static bool _esquemaIdTasaOk;
+
+        private static void AsegurarColumnaIdTasa()
+        {
+            if (_esquemaIdTasaOk) return;
+            lock (EsquemaIdTasaLock)
+            {
+                if (_esquemaIdTasaOk) return;
+                using (var c = new NpgsqlConnection(connstring))
+                {
+                    c.Open();
+                    using (var cmd = c.CreateCommand())
+                    {
+                        cmd.CommandText = @"
+ALTER TABLE public.recepciones
+    ADD COLUMN IF NOT EXISTS id_tasa integer NULL;
+
+COMMENT ON COLUMN public.recepciones.id_tasa IS
+    'Tasa especial (tasa_diaria.id) asociada a esta recepción; NULL = tasa diaria general';
+";
+                        cmd.ExecuteNonQuery();
+                        try
+                        {
+                            cmd.CommandText = @"
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'fk_recepciones_tasa'
+    ) THEN
+        ALTER TABLE public.recepciones
+            ADD CONSTRAINT fk_recepciones_tasa
+            FOREIGN KEY (id_tasa) REFERENCES public.tasa_diaria(id);
+    END IF;
+END $$;";
+                            cmd.ExecuteNonQuery();
+                        }
+                        catch
+                        {
+                            // Sin FK no impide asociar la tasa.
+                        }
+                    }
+                }
+                _esquemaIdTasaOk = true;
+            }
+        }
+
+        public void GuardarIdTasa(int idRecepcion, int idTasa)
+        {
+            if (idRecepcion <= 0 || idTasa <= 0) return;
+            AsegurarColumnaIdTasa();
+            try
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(
+                    "UPDATE recepciones SET id_tasa = @id_tasa WHERE id = @id", conn))
+                {
+                    cmd.Parameters.AddWithValue("@id_tasa", idTasa);
+                    cmd.Parameters.AddWithValue("@id", idRecepcion);
+                    cmd.ExecuteNonQuery();
+                }
+                conn.Close();
+            }
+            catch (Exception ex)
+            {
+                if (conn.State == ConnectionState.Open)
+                    conn.Close();
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public int ObtenerIdTasa(int idRecepcion)
+        {
+            if (idRecepcion <= 0) return 0;
+            try
+            {
+                AsegurarColumnaIdTasa();
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(
+                    "SELECT COALESCE(id_tasa, 0) FROM recepciones WHERE id = @id", conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idRecepcion);
+                    object val = cmd.ExecuteScalar();
+                    conn.Close();
+                    if (val == null || val == DBNull.Value)
+                        return 0;
+                    return Convert.ToInt32(val);
+                }
+            }
+            catch
+            {
+                if (conn.State == ConnectionState.Open)
+                    conn.Close();
+                return 0;
+            }
+        }
+
+        public Dictionary<int, int> ObtenerIdsTasa(IEnumerable<int> ids)
+        {
+            var mapa = new Dictionary<int, int>();
+            if (ids == null) return mapa;
+            int[] arreglo = ids.Where(x => x > 0).Distinct().ToArray();
+            if (arreglo.Length == 0) return mapa;
+
+            try
+            {
+                AsegurarColumnaIdTasa();
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(
+                    "SELECT id, COALESCE(id_tasa, 0) AS id_tasa FROM recepciones WHERE id = ANY(@ids)",
+                    conn))
+                {
+                    cmd.Parameters.AddWithValue("@ids", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, arreglo);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            int id = reader.GetInt32(0);
+                            int idTasa = reader.IsDBNull(1) ? 0 : reader.GetInt32(1);
+                            mapa[id] = idTasa;
+                        }
+                    }
+                }
+                conn.Close();
+            }
+            catch
+            {
+                if (conn.State == ConnectionState.Open)
+                    conn.Close();
+            }
+            return mapa;
+        }
+
+        public void GuardarModalidadPago(int idRecepcion, string modalidadPago)
+        {
+            if (idRecepcion <= 0) return;
+            string modalidad = string.IsNullOrWhiteSpace(modalidadPago) ? "BS/BCV" : modalidadPago.Trim();
+            try
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(
+                    "UPDATE recepciones SET modalidad_pago = @m WHERE id = @id", conn))
+                {
+                    cmd.Parameters.AddWithValue("@m", modalidad);
+                    cmd.Parameters.AddWithValue("@id", idRecepcion);
+                    cmd.ExecuteNonQuery();
+                }
+                conn.Close();
+            }
+            catch (Exception ex)
+            {
+                if (conn.State == ConnectionState.Open)
+                    conn.Close();
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public string ObtenerModalidadPago(int idRecepcion)
+        {
+            if (idRecepcion <= 0) return "BS/BCV";
+            try
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(
+                    "SELECT COALESCE(modalidad_pago, 'BS/BCV') FROM recepciones WHERE id = @id", conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idRecepcion);
+                    object val = cmd.ExecuteScalar();
+                    conn.Close();
+                    if (val == null || val == DBNull.Value)
+                        return "BS/BCV";
+                    return Convert.ToString(val);
+                }
+            }
+            catch
+            {
+                if (conn.State == ConnectionState.Open)
+                    conn.Close();
+                return "BS/BCV";
+            }
+        }
+
+        public Dictionary<int, string> ObtenerModalidadesPago(IEnumerable<int> ids)
+        {
+            var mapa = new Dictionary<int, string>();
+            if (ids == null) return mapa;
+            int[] arreglo = ids.Where(x => x > 0).Distinct().ToArray();
+            if (arreglo.Length == 0) return mapa;
+
+            try
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(
+                    "SELECT id, COALESCE(modalidad_pago, 'BS/BCV') AS modalidad_pago FROM recepciones WHERE id = ANY(@ids)",
+                    conn))
+                {
+                    cmd.Parameters.AddWithValue("@ids", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, arreglo);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            int id = reader.GetInt32(0);
+                            string modalidad = reader.IsDBNull(1) ? "BS/BCV" : reader.GetString(1);
+                            mapa[id] = string.IsNullOrWhiteSpace(modalidad) ? "BS/BCV" : modalidad.Trim();
+                        }
+                    }
+                }
+                conn.Close();
+            }
+            catch
+            {
+                if (conn.State == ConnectionState.Open)
+                    conn.Close();
+            }
+            return mapa;
+        }
+        #endregion
     }
 }

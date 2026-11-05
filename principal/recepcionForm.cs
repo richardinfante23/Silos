@@ -162,8 +162,6 @@ namespace principal
             if (!nuevo)
             {
                 cbEstatus.Enabled = true;
-                dtpFecha.Format = DateTimePickerFormat.Custom;
-                dtpFecha.CustomFormat = " ";
                 cbEstatus.SelectedItem = null;
                 cbSilos.SelectedItem = null;
                 cbEstatus.Text = string.Empty;
@@ -174,6 +172,23 @@ namespace principal
 
             ActualizarEspacioGrilla();
             AplicarModoPesajeSegunPerfil();
+            AplicarPoliticaFechaDocumento();
+        }
+
+        /// <summary>
+        /// Fecha documento: formato dd/MM/yyyy; solo administrador puede modificarla.
+        /// No admin: deshabilitada; en nuevo carga hoy.
+        /// </summary>
+        private void AplicarPoliticaFechaDocumento()
+        {
+            formatoFecha();
+            if (nuevo)
+                dtpFecha.Value = DateTime.Today;
+
+            bool puedeEditar = Base.EsAdministrador();
+            if (objRecepcion != null && (objRecepcion.id_estatus == 5 || objRecepcion.id_estatus == 6))
+                puedeEditar = false;
+            dtpFecha.Enabled = puedeEditar;
         }
 
         private void AplicarModoPesajeSegunPerfil()
@@ -396,36 +411,166 @@ namespace principal
             }
         }
 
+        /// <summary>
+        /// Asocia la recepción a la tasa diaria GENERAL (fecha+producto).
+        /// No pisa una tasa especial ya guardada.
+        /// </summary>
+        private void AsociarTasaDiariaGeneral()
+        {
+            if (objRecepcion == null || objRecepcion.id <= 0 || objRecepcion.id_producto <= 0)
+                return;
+
+            var tasaSvc = new tasaData();
+            int idActual = objRecepcion.id_tasa > 0
+                ? objRecepcion.id_tasa
+                : rd.ObtenerIdTasa(objRecepcion.id);
+
+            if (idActual > 0 && tasaSvc.EsTasaEspecial(idActual))
+            {
+                objRecepcion.id_tasa = idActual;
+                return;
+            }
+
+            DataTable general = tasaSvc.buscarPorFechaProducto(objRecepcion.fecha.Date, objRecepcion.id_producto);
+            if (general == null || general.Rows.Count == 0 || !general.Columns.Contains("id"))
+                return;
+
+            int idTasaGeneral = Convert.ToInt32(general.Rows[0]["id"]);
+            if (idTasaGeneral <= 0) return;
+
+            rd.GuardarIdTasa(objRecepcion.id, idTasaGeneral);
+            objRecepcion.id_tasa = idTasaGeneral;
+        }
+
+        private string ObtenerModalidadPagoSeleccionada()
+        {
+            if (cbModalidadPago != null && cbModalidadPago.SelectedItem != null)
+                return Convert.ToString(cbModalidadPago.SelectedItem);
+            if (!string.IsNullOrWhiteSpace(objRecepcion.modalidad_pago))
+                return objRecepcion.modalidad_pago;
+            return "BS/BCV";
+        }
+
+        private bool _cargandoModalidadPago;
+
+        private void SeleccionarModalidadPago(string modalidad)
+        {
+            if (cbModalidadPago == null) return;
+            string m = string.IsNullOrWhiteSpace(modalidad) ? "BS/BCV" : modalidad.Trim();
+            int idx = cbModalidadPago.FindStringExact(m);
+            _cargandoModalidadPago = true;
+            try
+            {
+                cbModalidadPago.SelectedIndex = idx >= 0 ? idx : 0;
+            }
+            finally
+            {
+                _cargandoModalidadPago = false;
+            }
+        }
+
+        private void cbModalidadPago_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (_cargandoModalidadPago) return;
+            if (objRecepcion == null || objRecepcion.id <= 0) return;
+            // Tras imprimir (estatus 5) solo se permite cambiar modalidad; se guarda al vuelo.
+            if (objRecepcion.id_estatus != 5 && objRecepcion.id_estatus != 6) return;
+            if (objRecepcion.id_estatus == 6) return;
+
+            try
+            {
+                string modalidad = ObtenerModalidadPagoSeleccionada();
+                objRecepcion.modalidad_pago = modalidad;
+                rd.GuardarModalidadPago(objRecepcion.id, modalidad);
+            }
+            catch (Exception ex)
+            {
+                Base.msjAdvertencia("No se pudo guardar la modalidad de pago: " + ex.Message);
+            }
+        }
+
         private void AplicarPreciosTasa(recepcionBO recepcion)
         {
             if (recepcion == null) return;
 
             recepcion.precio_tonelada_usd = 0;
+            recepcion.precio_efectivo_usd = 0;
+            recepcion.precio_50_50_usd = 0;
             recepcion.tasa_dolar_bs = 0;
             recepcion.total_usd = 0;
             recepcion.total_bs = 0;
+            recepcion.detalle_precios_boleta = string.Empty;
+            if (string.IsNullOrWhiteSpace(recepcion.modalidad_pago))
+                recepcion.modalidad_pago = ObtenerModalidadPagoSeleccionada();
 
             if (recepcion.id_producto <= 0)
                 return;
 
             try
             {
-                DataTable dt = new tasaData().buscarPorFechaProducto(recepcion.fecha.Date, recepcion.id_producto);
+                var tasaSvc = new tasaData();
+                DataTable dt = null;
+
+                if (recepcion.id_tasa <= 0 && recepcion.id > 0)
+                    recepcion.id_tasa = new recepcionData().ObtenerIdTasa(recepcion.id);
+
+                if (recepcion.id_tasa > 0)
+                    dt = tasaSvc.buscarPorId(recepcion.id_tasa);
+                if (dt == null || dt.Rows.Count == 0)
+                    dt = tasaSvc.buscarPorFechaProducto(recepcion.fecha.Date, recepcion.id_producto);
                 if (dt == null || dt.Rows.Count == 0)
                     return;
 
                 DataRow fila = dt.Rows[0];
-                decimal precioUsd = Convert.ToDecimal(fila["precio_tonelada_usd"]);
+                if (recepcion.id_tasa <= 0 && fila.Table.Columns.Contains("id") && fila["id"] != DBNull.Value)
+                    recepcion.id_tasa = Convert.ToInt32(fila["id"]);
+                decimal precioBcv = Convert.ToDecimal(fila["precio_tonelada_usd"]);
+                decimal precioEfectivo = 0;
+                if (fila.Table.Columns.Contains("precio_efectivo_usd") && fila["precio_efectivo_usd"] != DBNull.Value)
+                    precioEfectivo = Convert.ToDecimal(fila["precio_efectivo_usd"]);
+                decimal precio5050 = 0;
+                if (fila.Table.Columns.Contains("precio_50_50_usd") && fila["precio_50_50_usd"] != DBNull.Value)
+                    precio5050 = Convert.ToDecimal(fila["precio_50_50_usd"]);
                 decimal tasaBs = Convert.ToDecimal(fila["tasa_dolar_bs"]);
                 decimal pesoKg = recepcion.peso_acondicionado > 0
                     ? recepcion.peso_acondicionado
                     : recepcion.peso_neto;
                 decimal toneladas = pesoKg / 1000m;
+                string modalidad = (recepcion.modalidad_pago ?? "BS/BCV").Trim();
+                recepcion.modalidad_pago = modalidad;
 
-                recepcion.precio_tonelada_usd = precioUsd;
-                recepcion.tasa_dolar_bs = tasaBs;
-                recepcion.total_usd = Math.Round(toneladas * precioUsd, 2);
-                recepcion.total_bs = Math.Round(recepcion.total_usd * tasaBs, 2);
+                if (string.Equals(modalidad, "Efectivo $", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Solo efectivo: no mostrar BCV ni tasa Bs/$.
+                    recepcion.precio_efectivo_usd = precioEfectivo;
+                    recepcion.total_usd = Math.Round(toneladas * precioEfectivo, 2);
+                    recepcion.total_bs = 0;
+                    recepcion.detalle_precios_boleta =
+                        "Modalidad: Efectivo $    $/Ton Efectivo: " + precioEfectivo.ToString("N2");
+                }
+                else if (string.Equals(modalidad, "50/50", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Mitad Bs + mitad $; ambos rigen por el precio tonelada 50/50.
+                    decimal mitadTon = toneladas / 2m;
+                    recepcion.precio_50_50_usd = precio5050;
+                    recepcion.tasa_dolar_bs = tasaBs;
+                    recepcion.total_bs = Math.Round(mitadTon * precio5050 * tasaBs, 2);
+                    recepcion.total_usd = Math.Round(mitadTon * precio5050, 2);
+                    recepcion.detalle_precios_boleta =
+                        "Modalidad: 50/50    $/Ton 50/50: " + precio5050.ToString("N2")
+                        + "    Bs/$: " + tasaBs.ToString("N2");
+                }
+                else
+                {
+                    // Solo BS/BCV: no mostrar efectivo ni 50/50.
+                    recepcion.precio_tonelada_usd = precioBcv;
+                    recepcion.tasa_dolar_bs = tasaBs;
+                    recepcion.total_usd = 0;
+                    recepcion.total_bs = Math.Round(toneladas * precioBcv * tasaBs, 2);
+                    recepcion.detalle_precios_boleta =
+                        "Modalidad: BS/BCV    $/Ton BCV: " + precioBcv.ToString("N2")
+                        + "    Bs/$: " + tasaBs.ToString("N2");
+                }
             }
             catch
             {
@@ -513,9 +658,11 @@ namespace principal
                 }
                 if (((Control)sender).Name == "dtpFecha")
                 {
+                    // Solo admin puede borrar/cambiar fecha; mantener formato unificado.
+                    if (!Base.EsAdministrador())
+                        return;
                     dtpFecha.Value = DateTime.Today;
-                    dtpFecha.Format = DateTimePickerFormat.Custom;
-                    dtpFecha.CustomFormat = " ";
+                    formatoFecha();
                 }
                 if (((Control)sender).Name == "dtpFechaHasta")
                 {
@@ -991,17 +1138,22 @@ namespace principal
                 }
                 
                 
-                txtDIProductor.AccessibleDescription = "validar";
-                if (!validateRegistrarOrEditar("validar"))
-                    return;
+                if (!_anulando)
+                {
+                    txtDIProductor.AccessibleDescription = "validar";
+                    if (!validateRegistrarOrEditar("validar"))
+                        return;
+                }
                 objRecepcion.fecha = dtpFecha.Value;
                 objRecepcion.nro_placa = txtPlaca.Text;
                 objRecepcion.resumen = false;
-                objRecepcion.id_producto = Convert.ToInt32(((System.Data.DataRowView)(cbProducto.SelectedItem)).Row.ItemArray[0]);
+                if (cbProducto.SelectedItem is DataRowView)
+                    objRecepcion.id_producto = Convert.ToInt32(((System.Data.DataRowView)(cbProducto.SelectedItem)).Row.ItemArray[0]);
 
-                if (!ValidarTasaDiariaProducto(objRecepcion.fecha, objRecepcion.id_producto))
+                if (!_anulando && !ValidarTasaDiariaProducto(objRecepcion.fecha, objRecepcion.id_producto))
                     return;
 
+                objRecepcion.modalidad_pago = ObtenerModalidadPagoSeleccionada();
                 objRecepcion.nro_guia =txtNroguia.Text;
                 objRecepcion.peso_guia = !string.IsNullOrWhiteSpace(txtPesoGuia.Text) ?  Convert.ToDecimal(txtPesoGuia.Text) :0;
                 objRecepcion.observaciones = txtObservaciones.Text;
@@ -1042,6 +1194,10 @@ namespace principal
                         nuevo = false;
                         txtNroTcicket.Text = objRecepcion.id.ToString();
                         ConfigurarTicketAutogenerado();
+                        try { rd.GuardarModalidadPago(objRecepcion.id, objRecepcion.modalidad_pago); }
+                        catch (Exception exMod) { Base.msjAdvertencia("Recepción guardada, pero no se pudo guardar la modalidad de pago: " + exMod.Message); }
+                        try { AsociarTasaDiariaGeneral(); }
+                        catch (Exception exTasa) { Base.msjAdvertencia("Recepción guardada, pero no se pudo asociar la tasa del día: " + exTasa.Message); }
                     }
                 }
                 UiDialog.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1090,6 +1246,10 @@ namespace principal
                 }
                  resultadodt = rd.actualizar(objRecepcion.id,objRecepcion.nro_placa, objRecepcion.id_conductor, objRecepcion.fecha, objRecepcion.nro_guia, objRecepcion.peso_guia, objRecepcion.id_producto, objRecepcion.id_productor,
                     objRecepcion.observaciones, objRecepcion.id_estatus, objRecepcion.peso_bruto, objRecepcion.peso_tara, objRecepcion.id_silos, false, objRecepcion.hora_entrada, objRecepcion.hora_salida,objRecepcion.id_productor_juridico);
+                try { rd.GuardarModalidadPago(objRecepcion.id, objRecepcion.modalidad_pago); }
+                catch (Exception exMod) { Base.msjAdvertencia("Recepción guardada, pero no se pudo guardar la modalidad de pago: " + exMod.Message); }
+                try { AsociarTasaDiariaGeneral(); }
+                catch (Exception exTasa) { Base.msjAdvertencia("Recepción guardada, pero no se pudo asociar la tasa del día: " + exTasa.Message); }
                 UiDialog.Show("Registro guardado exitosamente", "Exitoso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 llenarGrid();
                 resultadodt.Dispose();
@@ -1397,7 +1557,16 @@ namespace principal
                                 objRecepcion.letranatural = string.Empty;
                             }
                             objRecepcion.resumen = Convert.ToBoolean(fila["resumen"]);
-                     
+                            if (fila.Table.Columns.Contains("modalidad_pago") && fila["modalidad_pago"] != DBNull.Value)
+                                objRecepcion.modalidad_pago = Convert.ToString(fila["modalidad_pago"]);
+                            else
+                                objRecepcion.modalidad_pago = rd.ObtenerModalidadPago(objRecepcion.id);
+
+                            if (fila.Table.Columns.Contains("id_tasa") && fila["id_tasa"] != DBNull.Value)
+                                objRecepcion.id_tasa = Convert.ToInt32(fila["id_tasa"]);
+                            else
+                                objRecepcion.id_tasa = rd.ObtenerIdTasa(objRecepcion.id);
+
                             llenarCampos(objRecepcion);
                          
 
@@ -1461,6 +1630,14 @@ namespace principal
                 
                             }
                             objRecepcionR.resumen = Convert.ToBoolean(fila["resumen"]);
+                            if (fila.Table.Columns.Contains("modalidad_pago") && fila["modalidad_pago"] != DBNull.Value)
+                                objRecepcionR.modalidad_pago = Convert.ToString(fila["modalidad_pago"]);
+                            else
+                                objRecepcionR.modalidad_pago = rd.ObtenerModalidadPago(objRecepcionR.id);
+                            if (fila.Table.Columns.Contains("id_tasa") && fila["id_tasa"] != DBNull.Value)
+                                objRecepcionR.id_tasa = Convert.ToInt32(fila["id_tasa"]);
+                            else
+                                objRecepcionR.id_tasa = rd.ObtenerIdTasa(objRecepcionR.id);
                             DataTable analisisDTR = rd.buscaranalisis(objRecepcionR.id);
                             if (objRecepcionR.resumen && analisisDTR.Rows.Count > 0) {
                                 
@@ -1575,6 +1752,7 @@ namespace principal
                             txtPlaca.Text = objRecepcion.nro_placa;
                             txtNroguia.Text = objRecepcion.nro_guia;
                             txtPesoGuia.Text = objRecepcion.peso_guia.ToString();
+                            SeleccionarModalidadPago(objRecepcion.modalidad_pago);
                             this.rbAnalisis.CheckedChanged -= new System.EventHandler(this.rbResumen_CheckedChanged);
                             rbAnalisisNo.Checked = true;
                             rbAnalisis.Checked = false;
@@ -1614,24 +1792,12 @@ namespace principal
                                 dtpHoraSalida.CustomFormat = " ";
 
                             }
-                            if (objRecepcion.fecha.Date != horadefecto.Date)
-                            {
-                                formatoFecha();
-                                dtpFecha.Value = Convert.ToDateTime(objRecepcion.fecha);
-                            }
-                            else
-                            {
+                            formatoFecha();
+                            dtpFecha.Value = Convert.ToDateTime(objRecepcion.fecha);
 
-                                dtpFecha.Format = DateTimePickerFormat.Custom;
-                                dtpFecha.CustomFormat = " ";
-                            }
+                            bloquearControles();
+                            AplicarPoliticaFechaDocumento();
 
-                            
-                                bloquearControles();
-             
-
-
-                           
                             if (objRecepcion.id_estatus >= 4 && objRecepcion.id_estatus<=6)
                             {
                                 btnImprimir.Visible = true;
@@ -2017,32 +2183,101 @@ namespace principal
             cargarAnalisis();
         }
 
+        private bool _anulando;
+
         private void btnAnular_Click(object sender, EventArgs e)
         {
+            if (objRecepcion == null || objRecepcion.id <= 0)
+            {
+                Base.msjAdvertencia("No hay recepción para anular.");
+                return;
+            }
+            if (objRecepcion.id_estatus == 6)
+            {
+                Base.msjAdvertencia("La recepción ya está anulada.");
+                return;
+            }
 
-            txtObservaciones.AccessibleDescription = "validarAnular";
+            // Tras imprimir/culminar los campos quedan bloqueados; observaciones debe poder editarse.
+            if (txtObservaciones != null)
+            {
+                txtObservaciones.Enabled = true;
+                txtObservaciones.AccessibleDescription = "validarAnular";
+                txtObservaciones.Focus();
+            }
+
             if (!validateRegistrarOrEditar("validarAnular"))
+            {
+                Base.msjAdvertencia("Indique el motivo de anulación en observaciones.");
+                return;
+            }
+
+            DialogResult confirm = UiDialog.Show(
+                "¿Desea anular esta recepción?",
+                "Anular",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+            if (confirm != DialogResult.Yes)
                 return;
 
+            int estatusAnterior = objRecepcion.id_estatus;
             objRecepcion.id_estatus = 6;
-            btnGuardar_Click(sender, e);
+            _anulando = true;
+            try
+            {
+                btnGuardar_Click(sender, e);
+            }
+            finally
+            {
+                _anulando = false;
+            }
+
+            // Si el guardado falló, no dejar la UI como anulada.
+            if (objRecepcion.id_estatus == 6)
+            {
+                try
+                {
+                    DataTable dt = rd.buscar(objRecepcion.id, 0, 0, 0, 0, string.Empty, 0, 0,
+                        DateTimePicker.MinimumDateTime, DateTimePicker.MinimumDateTime);
+                    if (dt != null && dt.Rows.Count > 0)
+                    {
+                        int estatusBd = Convert.ToInt32(dt.Rows[0]["id_estatus"]);
+                        if (estatusBd != 6)
+                            objRecepcion.id_estatus = estatusAnterior;
+                    }
+                    else
+                        objRecepcion.id_estatus = estatusAnterior;
+                }
+                catch
+                {
+                    objRecepcion.id_estatus = estatusAnterior;
+                }
+            }
+
             bloquearControles();
-            
-            
+            ActualizarBotonesAccionModo();
+            ActualizarPasosRecepcion();
         }
 
         private void bloquearControles()
         {
             if (objRecepcion.id_estatus == 6 || objRecepcion.id_estatus == 5)
             {
-            lbAnulado.Text = objRecepcion.id_estatus == 5?string.Empty:"Anulado";
-            btnEliminarAnalisis.Enabled = false;
-            btnGuardar.Enabled = false;
-            btnGuardarAnalisis.Enabled = false;
-            btnGuardarRomana.Enabled = false;
-            btnAnular.Enabled = false;
-            rbAnalisis.Enabled = false;
-            rbAnalisisNo.Enabled = false;
+                lbAnulado.Text = objRecepcion.id_estatus == 5 ? string.Empty : "Anulado";
+                btnEliminarAnalisis.Enabled = false;
+                btnGuardar.Enabled = false;
+                btnGuardarAnalisis.Enabled = false;
+                btnGuardarRomana.Enabled = false;
+                // Anulado: no anular de nuevo. Impreso/culminado: sí se puede anular.
+                btnAnular.Enabled = objRecepcion.id_estatus != 6;
+                rbAnalisis.Enabled = false;
+                rbAnalisisNo.Enabled = false;
+                // Impreso/anulado: bloquear captura; si solo está impreso, dejar modalidad editable.
+                BloquearCamposTrasImpresion(soloModalidadEditable: objRecepcion.id_estatus == 5);
+                if (btnImprimir != null && objRecepcion.id_estatus == 5)
+                    btnImprimir.Enabled = true;
+                if (btnAnular != null && objRecepcion.id_estatus == 5 && txtObservaciones != null)
+                    txtObservaciones.Enabled = true;
             }
             else
             {
@@ -2050,9 +2285,32 @@ namespace principal
                 btnGuardar.Enabled = true;
                 btnGuardarRomana.Enabled = true;
                 btnAnular.Enabled = true;
+                if (cbModalidadPago != null)
+                    cbModalidadPago.Enabled = true;
+                AplicarPoliticaFechaDocumento();
             }
 
             ConfigurarAnalisisSinUso();
+        }
+
+        private void BloquearCamposTrasImpresion(bool soloModalidadEditable)
+        {
+            Control[] campos =
+            {
+                txtNroTcicket, dtpFecha, cbProducto, txtConductor, txtNombreConductor, txtPlaca,
+                btnBuscarConductor, txtNroguia, txtPesoGuia, txtDIProductor, txtNombreProductor,
+                btnBuscarProductor, cbLetras, txtObservaciones, cbSilos, cbEstatus,
+                txtPesoEntrada, txtPesoSalida, dtpHoraentrada, dtpHoraSalida,
+                btnPesoEntrada, btnPesoSalida, rbManual, dgvAnalisis
+            };
+            foreach (Control c in campos)
+            {
+                if (c != null)
+                    c.Enabled = false;
+            }
+
+            if (cbModalidadPago != null)
+                cbModalidadPago.Enabled = soloModalidadEditable;
         }
 
         private void btnImprimir_Click(object sender, EventArgs e)
@@ -2078,6 +2336,12 @@ namespace principal
             objRecepcion.direccion_empresa = direccionempresa;
             objRecepcion.peso_merma = objRecepcion.peso_guia==0?0: objRecepcion.peso_neto-objRecepcion.peso_guia ;
             objRecepcion.usuario = nombre_Usuario;
+            objRecepcion.modalidad_pago = ObtenerModalidadPagoSeleccionada();
+            if (objRecepcion.id > 0)
+            {
+                try { rd.GuardarModalidadPago(objRecepcion.id, objRecepcion.modalidad_pago); }
+                catch { /* si la columna aún no existe, la boleta igual usa la modalidad en memoria */ }
+            }
             AplicarPreciosTasa(objRecepcion);
             reporteForm rf = new reporteForm(objRecepcion.listaAnalisis);
             rf.listaAnalisis = objRecepcion.listaAnalisis;
@@ -2263,7 +2527,8 @@ namespace principal
                     return;
                 string trama;
                 string detalle;
-                txtPesoEntrada.Text = RomanaSerialHelper.LeerPesoUnaVez(spRomana, out trama, out detalle);
+                decimal peso = RomanaSerialHelper.LeerPesoDecimal(spRomana, out trama, out detalle);
+                txtPesoEntrada.Text = RomanaSerialHelper.FormatearPesoParaBd(peso);
                 dtpHoraentrada.Value = DateTime.Now;
                 spRomana.Close();
             }
@@ -2282,7 +2547,8 @@ namespace principal
                     return;
                 string trama;
                 string detalle;
-                txtPesoSalida.Text = RomanaSerialHelper.LeerPesoUnaVez(spRomana, out trama, out detalle);
+                decimal peso = RomanaSerialHelper.LeerPesoDecimal(spRomana, out trama, out detalle);
+                txtPesoSalida.Text = RomanaSerialHelper.FormatearPesoParaBd(peso);
                 dtpHoraSalida.Value = DateTime.Now;
                 spRomana.Close();
             }

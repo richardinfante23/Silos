@@ -13,20 +13,48 @@ namespace principal
         private GridHeaderFilter _filtro;
         private bool _editando;
         private int _idActual;
+        private readonly bool _modoDesdeRecepcion;
+        private readonly DateTime _fechaFijaRecepcion;
+        private readonly int _idProductoRecepcion;
+        private readonly int _idRecepcion;
+
+        /// <summary>Id de la tasa especial creada desde recepción (0 si no aplica).</summary>
+        public int IdTasaCreada { get; private set; }
 
         private Panel _panelForm;
         private DateTimePicker _dtpFecha;
         private ComboBox _cbProducto;
         private TextBox _txtPrecioUsd;
+        private TextBox _txtPrecioEfectivoUsd;
+        private TextBox _txtPrecio5050Usd;
         private TextBox _txtTasaBs;
         private Button _btnGuardar;
         private Button _btnNuevo;
         private Button _btnCancelar;
         private DataGridView _dgv;
         private Label _lbTitulo;
+        private Label _lbListado;
 
         public tasaForm()
+            : this(false, DateTime.Today, 0, 0)
         {
+        }
+
+        /// <summary>
+        /// Desde recepción (admin): crea una tasa especial nueva ligada a la recepción.
+        /// Fecha fija (puede ser anterior); no modifica la tasa diaria general.
+        /// </summary>
+        public tasaForm(DateTime fechaRecepcion, int idProducto, int idRecepcion)
+            : this(true, fechaRecepcion.Date, idProducto, idRecepcion)
+        {
+        }
+
+        private tasaForm(bool desdeRecepcion, DateTime fechaFija, int idProducto, int idRecepcion)
+        {
+            _modoDesdeRecepcion = desdeRecepcion;
+            _fechaFijaRecepcion = fechaFija.Date;
+            _idProductoRecepcion = idProducto;
+            _idRecepcion = idRecepcion;
             InitializeComponent();
             ConstruirUi();
             Load += tasaForm_Load;
@@ -34,7 +62,7 @@ namespace principal
 
         private void tasaForm_Load(object sender, EventArgs e)
         {
-            if (MdiParent != null)
+            if (MdiParent != null && !_modoDesdeRecepcion)
                 WindowState = FormWindowState.Maximized;
 
             UiTheme.ApplyForm(this);
@@ -42,10 +70,21 @@ namespace principal
             UiTheme.StyleDataGridView(_dgv);
             _dgv.ColumnHeadersHeight = 36;
             _dgv.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
-            Text = "Configuración Tasa";
+            Text = _modoDesdeRecepcion ? "Tasa especial" : "Configuración Tasa";
+            if (_lbTitulo != null)
+                _lbTitulo.Text = Text;
             CargarProductos();
             ModoNuevo();
-            CargarGrid();
+            if (_modoDesdeRecepcion)
+            {
+                if (_btnNuevo != null) _btnNuevo.Visible = false;
+                if (_dgv != null) _dgv.Visible = false;
+                if (_lbListado != null) _lbListado.Visible = false;
+            }
+            else
+            {
+                CargarGrid();
+            }
         }
 
         private void ConstruirUi()
@@ -66,7 +105,7 @@ namespace principal
             _panelForm = new Panel
             {
                 Location = new Point(16, 42),
-                Size = new Size(920, 118),
+                Size = new Size(920, 188),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 BackColor = UiTheme.Card,
                 Padding = new Padding(12, 8, 12, 8)
@@ -90,7 +129,7 @@ namespace principal
             };
             UiTheme.StyleComboBox(_cbProducto);
 
-            var lblPrecio = CrearEtiqueta("Precio tonelada (USD)", 364, 8);
+            var lblPrecio = CrearEtiqueta("Precio tonelada $ a BCV", 364, 8);
             _txtPrecioUsd = CrearTexto(364, 26, 160);
             _txtPrecioUsd.KeyPress += SoloDecimal_KeyPress;
 
@@ -98,9 +137,17 @@ namespace principal
             _txtTasaBs = CrearTexto(540, 26, 160);
             _txtTasaBs.KeyPress += SoloDecimal_KeyPress;
 
-            _btnGuardar = new Button { Text = "Guardar", Location = new Point(12, 68), Size = new Size(100, 34) };
-            _btnNuevo = new Button { Text = "Nuevo", Location = new Point(122, 68), Size = new Size(100, 34) };
-            _btnCancelar = new Button { Text = "Cerrar", Location = new Point(232, 68), Size = new Size(100, 34) };
+            var lblPrecioEfectivo = CrearEtiqueta("Precio en $ efectivo", 12, 62);
+            _txtPrecioEfectivoUsd = CrearTexto(12, 80, 160);
+            _txtPrecioEfectivoUsd.KeyPress += SoloDecimal_KeyPress;
+
+            var lblPrecio5050 = CrearEtiqueta("Precio tonelada 50/50 ($)", 188, 62);
+            _txtPrecio5050Usd = CrearTexto(188, 80, 180);
+            _txtPrecio5050Usd.KeyPress += SoloDecimal_KeyPress;
+
+            _btnGuardar = new Button { Text = "Guardar", Location = new Point(12, 140), Size = new Size(100, 34) };
+            _btnNuevo = new Button { Text = "Nuevo", Location = new Point(122, 140), Size = new Size(100, 34) };
+            _btnCancelar = new Button { Text = "Cerrar", Location = new Point(232, 140), Size = new Size(100, 34) };
             _btnGuardar.Click += btnGuardar_Click;
             _btnNuevo.Click += (s, e) => ModoNuevo();
             _btnCancelar.Click += (s, e) => Close();
@@ -117,23 +164,28 @@ namespace principal
             _panelForm.Controls.Add(_txtPrecioUsd);
             _panelForm.Controls.Add(lblTasa);
             _panelForm.Controls.Add(_txtTasaBs);
+            _panelForm.Controls.Add(lblPrecioEfectivo);
+            _panelForm.Controls.Add(_txtPrecioEfectivoUsd);
+            _panelForm.Controls.Add(lblPrecio5050);
+            _panelForm.Controls.Add(_txtPrecio5050Usd);
             _panelForm.Controls.Add(_btnGuardar);
             _panelForm.Controls.Add(_btnNuevo);
             _panelForm.Controls.Add(_btnCancelar);
 
-            var lblListado = new Label
+            _lbListado = new Label
             {
                 Text = "Últimas tasas · doble clic para editar",
                 Font = UiTheme.FontSubtitle,
                 ForeColor = UiTheme.TextMuted,
                 AutoSize = true,
-                Location = new Point(16, 170)
+                Location = new Point(16, 242)
             };
+            var lblListado = _lbListado;
 
             _dgv = new DataGridView
             {
-                Location = new Point(16, 192),
-                Size = new Size(920, 410),
+                Location = new Point(16, 264),
+                Size = new Size(920, 338),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
@@ -205,12 +257,19 @@ namespace principal
         {
             _editando = false;
             _idActual = 0;
-            _dtpFecha.Value = DateTime.Today;
+            _dtpFecha.Value = _modoDesdeRecepcion ? _fechaFijaRecepcion : DateTime.Today;
             _dtpFecha.Enabled = false;
             _cbProducto.Enabled = true;
-            if (_cbProducto.Items.Count > 0)
+            if (_modoDesdeRecepcion && _idProductoRecepcion > 0)
+            {
+                try { _cbProducto.SelectedValue = _idProductoRecepcion; }
+                catch { if (_cbProducto.Items.Count > 0) _cbProducto.SelectedIndex = 0; }
+            }
+            else if (_cbProducto.Items.Count > 0)
                 _cbProducto.SelectedIndex = 0;
             _txtPrecioUsd.Text = string.Empty;
+            _txtPrecioEfectivoUsd.Text = string.Empty;
+            _txtPrecio5050Usd.Text = string.Empty;
             _txtTasaBs.Text = string.Empty;
             _btnGuardar.Text = "Guardar";
             _txtPrecioUsd.Focus();
@@ -226,6 +285,14 @@ namespace principal
                 _cbProducto.SelectedValue = Convert.ToInt32(fila["id_producto"]);
             _cbProducto.Enabled = true;
             _txtPrecioUsd.Text = Convert.ToDecimal(fila["precio_tonelada_usd"]).ToString("N4", CultureInfo.CurrentCulture);
+            decimal precioEfectivo = 0;
+            if (fila.Table.Columns.Contains("precio_efectivo_usd") && fila["precio_efectivo_usd"] != DBNull.Value)
+                precioEfectivo = Convert.ToDecimal(fila["precio_efectivo_usd"]);
+            _txtPrecioEfectivoUsd.Text = precioEfectivo.ToString("N4", CultureInfo.CurrentCulture);
+            decimal precio5050 = 0;
+            if (fila.Table.Columns.Contains("precio_50_50_usd") && fila["precio_50_50_usd"] != DBNull.Value)
+                precio5050 = Convert.ToDecimal(fila["precio_50_50_usd"]);
+            _txtPrecio5050Usd.Text = precio5050.ToString("N4", CultureInfo.CurrentCulture);
             _txtTasaBs.Text = Convert.ToDecimal(fila["tasa_dolar_bs"]).ToString("N4", CultureInfo.CurrentCulture);
             _btnGuardar.Text = "Actualizar";
             _txtPrecioUsd.Focus();
@@ -253,12 +320,17 @@ namespace principal
 
             CatalogGridHelper.HideColumn(_dgv, "id");
             CatalogGridHelper.HideColumn(_dgv, "id_producto");
+            CatalogGridHelper.HideColumn(_dgv, "id_recepcion");
+            CatalogGridHelper.HideColumn(_dgv, "es_especial");
             CatalogGridHelper.HideColumn(_dgv, "creado_en");
             CatalogGridHelper.HideColumn(_dgv, "actualizado_en");
 
             CatalogGridHelper.SetHeader(_dgv, "fecha", "Fecha");
             CatalogGridHelper.SetHeader(_dgv, "producto", "Producto");
-            CatalogGridHelper.SetHeader(_dgv, "precio_tonelada_usd", "Precio tonelada (USD)");
+            CatalogGridHelper.SetHeader(_dgv, "tipo", "Tipo");
+            CatalogGridHelper.SetHeader(_dgv, "precio_tonelada_usd", "Precio tonelada $ a BCV");
+            CatalogGridHelper.SetHeader(_dgv, "precio_efectivo_usd", "Precio en $ efectivo");
+            CatalogGridHelper.SetHeader(_dgv, "precio_50_50_usd", "Precio tonelada 50/50 ($)");
             CatalogGridHelper.SetHeader(_dgv, "tasa_dolar_bs", "Precio Bs/$");
 
             foreach (DataGridViewColumn col in _dgv.Columns)
@@ -270,13 +342,19 @@ namespace principal
             }
 
             if (_dgv.Columns.Contains("fecha"))
-                _dgv.Columns["fecha"].FillWeight = 90;
+                _dgv.Columns["fecha"].FillWeight = 70;
             if (_dgv.Columns.Contains("producto"))
-                _dgv.Columns["producto"].FillWeight = 120;
+                _dgv.Columns["producto"].FillWeight = 100;
+            if (_dgv.Columns.Contains("tipo"))
+                _dgv.Columns["tipo"].FillWeight = 70;
             if (_dgv.Columns.Contains("precio_tonelada_usd"))
-                _dgv.Columns["precio_tonelada_usd"].FillWeight = 140;
+                _dgv.Columns["precio_tonelada_usd"].FillWeight = 120;
+            if (_dgv.Columns.Contains("precio_efectivo_usd"))
+                _dgv.Columns["precio_efectivo_usd"].FillWeight = 120;
+            if (_dgv.Columns.Contains("precio_50_50_usd"))
+                _dgv.Columns["precio_50_50_usd"].FillWeight = 120;
             if (_dgv.Columns.Contains("tasa_dolar_bs"))
-                _dgv.Columns["tasa_dolar_bs"].FillWeight = 130;
+                _dgv.Columns["tasa_dolar_bs"].FillWeight = 90;
 
             if (_filtro != null)
                 _filtro.SyncHeaders();
@@ -295,12 +373,28 @@ namespace principal
                 }
 
                 decimal precioUsd;
+                decimal precioEfectivoUsd;
+                decimal precio5050Usd;
                 decimal tasaBs;
                 if (!decimal.TryParse(_txtPrecioUsd.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out precioUsd)
                     && !decimal.TryParse(_txtPrecioUsd.Text, NumberStyles.Number, CultureInfo.InvariantCulture, out precioUsd))
                 {
-                    Base.msjAdvertencia("Indique un precio de tonelada válido en USD.");
+                    Base.msjAdvertencia("Indique un precio tonelada $ a BCV válido.");
                     _txtPrecioUsd.Focus();
+                    return;
+                }
+                if (!decimal.TryParse(_txtPrecioEfectivoUsd.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out precioEfectivoUsd)
+                    && !decimal.TryParse(_txtPrecioEfectivoUsd.Text, NumberStyles.Number, CultureInfo.InvariantCulture, out precioEfectivoUsd))
+                {
+                    Base.msjAdvertencia("Indique un precio en $ efectivo válido.");
+                    _txtPrecioEfectivoUsd.Focus();
+                    return;
+                }
+                if (!decimal.TryParse(_txtPrecio5050Usd.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out precio5050Usd)
+                    && !decimal.TryParse(_txtPrecio5050Usd.Text, NumberStyles.Number, CultureInfo.InvariantCulture, out precio5050Usd))
+                {
+                    Base.msjAdvertencia("Indique un precio tonelada 50/50 válido.");
+                    _txtPrecio5050Usd.Focus();
                     return;
                 }
                 if (!decimal.TryParse(_txtTasaBs.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out tasaBs)
@@ -310,9 +404,41 @@ namespace principal
                     _txtTasaBs.Focus();
                     return;
                 }
-                if (precioUsd < 0 || tasaBs < 0)
+                if (precioUsd < 0 || precioEfectivoUsd < 0 || precio5050Usd < 0 || tasaBs < 0)
                 {
                     Base.msjAdvertencia("Los valores no pueden ser negativos.");
+                    return;
+                }
+
+                if (_modoDesdeRecepcion)
+                {
+                    if (_idRecepcion <= 0)
+                    {
+                        Base.msjAdvertencia("Debe guardar la recepción antes de registrar una tasa especial.");
+                        return;
+                    }
+
+                    DataTable creada = _data.insertarEspecial(
+                        _fechaFijaRecepcion,
+                        idProducto,
+                        _idRecepcion,
+                        precioUsd,
+                        tasaBs,
+                        precioEfectivoUsd,
+                        precio5050Usd);
+
+                    int idTasaNueva = 0;
+                    if (creada != null && creada.Rows.Count > 0 && creada.Columns.Contains("id"))
+                        idTasaNueva = Convert.ToInt32(creada.Rows[0]["id"]);
+
+                    if (idTasaNueva <= 0)
+                        throw new Exception("No se obtuvo el id de la tasa especial creada.");
+
+                    new recepcionData().GuardarIdTasa(_idRecepcion, idTasaNueva);
+                    IdTasaCreada = idTasaNueva;
+                    Base.msjExito("Tasa especial creada y asociada a la recepción.");
+                    DialogResult = DialogResult.OK;
+                    Close();
                     return;
                 }
 
@@ -326,12 +452,12 @@ namespace principal
                         return;
                     }
 
-                    _data.insertar(DateTime.Today, idProducto, precioUsd, tasaBs);
+                    _data.insertar(DateTime.Today, idProducto, precioUsd, tasaBs, precioEfectivoUsd, precio5050Usd);
                     Base.msjExito("Tasa del día guardada exitosamente.");
                 }
                 else
                 {
-                    _data.actualizar(_idActual, idProducto, precioUsd, tasaBs);
+                    _data.actualizar(_idActual, idProducto, precioUsd, tasaBs, precioEfectivoUsd, precio5050Usd);
                     Base.msjExito("Tasa actualizada exitosamente.");
                 }
 

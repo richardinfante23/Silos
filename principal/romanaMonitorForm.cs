@@ -21,6 +21,7 @@ namespace principal
         private Button _btnConectar;
         private Button _btnEnviar;
         private Button _btnTomar;
+        private Button _btnSoloLeer;
         private Button _btnGuardar;
         private Button _btnLimpiar;
         private Button _btnCerrar;
@@ -44,8 +45,12 @@ namespace principal
             _cbBaud.SelectedItem = RomanaSerialHelper.BaudConfigurado.ToString();
             if (_cbBaud.SelectedIndex < 0) _cbBaud.SelectedItem = "9600";
             _txtComando.Text = RomanaSerialHelper.ComandoPeso;
-            Log("Consejo: conecte la báscula, elija el COM, Conectar, luego Tomar / Enviar.");
-            Log("Copie la trama cruda y con eso ajustamos el parseo si hiciera falta.");
+            Log("Consejo: conecte la báscula, elija el COM, Conectar.");
+            Log("1) Deje peso en la romana y espere 5 s con escucha continua (sin Enviar).");
+            Log("2) Si no llega nada: Solo leer. Luego pruebe Tomar / Enviar R.");
+            Log("Nota: COM1 a menudo NO es el USB; al conectar el adaptador suele aparecer COM3, COM4...");
+            if (_cbPuerto.Items.Count == 1 && string.Equals(Convert.ToString(_cbPuerto.Items[0]), "COM1", StringComparison.OrdinalIgnoreCase))
+                Log("AVISO: solo se ve COM1. Verifique el cable USB-Serial en Administrador de dispositivos.");
         }
 
         private void ConstruirUi()
@@ -108,15 +113,20 @@ namespace principal
             UiTheme.StyleCompactSecondaryButton(_btnEnviar, "Enviar", 90, 30);
             Controls.Add(_btnEnviar);
 
-            _btnTomar = new Button { Text = "Tomar (como recepción)", Location = new Point(204, 126), Size = new Size(170, 30) };
+            _btnTomar = new Button { Text = "Tomar", Location = new Point(204, 126), Size = new Size(90, 30) };
             _btnTomar.Click += btnTomar_Click;
-            UiTheme.StyleCompactPrimaryButton(_btnTomar, "Tomar (como recepción)", 170, 30);
+            UiTheme.StyleCompactPrimaryButton(_btnTomar, "Tomar", 90, 30);
             Controls.Add(_btnTomar);
+
+            _btnSoloLeer = new Button { Text = "Solo leer", Location = new Point(300, 126), Size = new Size(90, 30) };
+            _btnSoloLeer.Click += btnSoloLeer_Click;
+            UiTheme.StyleCompactSecondaryButton(_btnSoloLeer, "Solo leer", 90, 30);
+            Controls.Add(_btnSoloLeer);
 
             _chkEscucha = new CheckBox
             {
-                Text = "Escucha continua (DataReceived)",
-                Location = new Point(390, 130),
+                Text = "Escucha continua",
+                Location = new Point(400, 130),
                 AutoSize = true,
                 Checked = true
             };
@@ -232,6 +242,9 @@ namespace principal
                 UiTheme.StyleCompactSecondaryButton(_btnConectar, "Desconectar", 100, 30);
                 _lblEstado.Text = "Conectado " + _port.PortName + " @ " + baud;
                 Log("Abierto " + _port.PortName + " baud=" + baud);
+                if (string.Equals(_port.PortName, "COM1", StringComparison.OrdinalIgnoreCase))
+                    Log("AVISO: COM1 suele ser puerto legacy. Si el adaptador USB no se ve otro COM, revise drivers.");
+                Log("Espere unos segundos con peso en la báscula. Si envía sola, verá lineas << ...");
             }
             catch (Exception ex)
             {
@@ -254,7 +267,7 @@ namespace principal
                     decimal peso;
                     if (RomanaSerialHelper.TryParsePeso(_buffer.ToString(), out peso, out detalle))
                     {
-                        _txtPesoDetectado.Text = Math.Round(peso, 2).ToString();
+                        _txtPesoDetectado.Text = RomanaSerialHelper.FormatearPesoParaBd(peso);
                         Log("Parse: " + detalle);
                     }
                     if (chunk.IndexOf('\n') >= 0 || chunk.IndexOf('\r') >= 0)
@@ -283,6 +296,44 @@ namespace principal
             }
         }
 
+        private void btnSoloLeer_Click(object sender, EventArgs e)
+        {
+            if (_port == null || !_port.IsOpen)
+            {
+                Base.msjAdvertencia("Conecte el puerto primero.");
+                return;
+            }
+            try
+            {
+                Log("Solo leer (sin enviar comando), 2 s...");
+                string trama;
+                if (!RomanaSerialHelper.TryLeerPasivo(_port, 2000, out trama) || string.IsNullOrWhiteSpace(trama))
+                {
+                    Log("No llegó ningún byte. Pruebe otro baud (9600/19200/4800) u otro COM.");
+                    Base.msjAdvertencia("No llegó data. La báscula no está enviando por este puerto/baud.");
+                    return;
+                }
+                Log("<< " + RomanaSerialHelper.ToHexPreview(trama));
+                string detalle;
+                decimal peso;
+                if (RomanaSerialHelper.TryParsePeso(trama, out peso, out detalle))
+                {
+                    _txtPesoDetectado.Text = RomanaSerialHelper.FormatearPesoParaBd(peso);
+                    Log("Parse: " + detalle);
+                    Base.msjExito("Peso: " + _txtPesoDetectado.Text + "\n" + detalle);
+                }
+                else
+                {
+                    Log("Llegó trama pero no se interpretó peso. Copie el log para ajustar parseo.");
+                    Base.msjAdvertencia("Trama recibida sin peso interpretable. Copie el log.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Base.msjError(ex.Message);
+            }
+        }
+
         private void btnTomar_Click(object sender, EventArgs e)
         {
             if (_port == null || !_port.IsOpen)
@@ -302,6 +353,7 @@ namespace principal
             }
             catch (Exception ex)
             {
+                Log("Tomar falló: " + ex.Message);
                 Base.msjError(ex.Message);
             }
         }
