@@ -24,3 +24,7 @@ Sisges.Configuracion/obj/
 
 principal/SisgesConnection.config
 **/SisgesConnection.config
+/deploy/paquete_cliente_20260826
+/deploy/migrar_sisgesconnection.bat
+/deploy/REQUISITOS_INSTALACION.txt
+/deploy/verificar_sisges.bat
